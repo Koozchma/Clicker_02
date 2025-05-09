@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolving Clicker v3</title>
+    <title>Evolving Clicker v4</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,18 +20,22 @@
                     <div class="resource">
                         <span class="resource-label">ENERGY:</span>
                         <span id="energy-count" class="resource-value">0</span>
+                        <span class="resource-details">(<span id="energy-production">0</span>/s - <span id="energy-consumption">0</span>/s = <span id="energy-net">0</span>/s)</span>
                     </div>
                     <div class="resource">
                         <span class="resource-label">MATERIAL:</span>
                         <span id="manufacturing-count" class="resource-value">0</span>
+                        <span class="resource-details">(<span id="material-production">0</span>/s)</span>
                     </div>
                     <div class="resource">
                         <span class="resource-label">CREDITS:</span>
                         <span id="coin-count" class="resource-value">0</span>
+                        <span class="resource-details">(<span id="credits-production">0</span>/s)</span>
                     </div>
                     <div class="resource">
                         <span class="resource-label">RESEARCH DATA:</span>
                         <span id="science-count" class="resource-value">0</span>
+                        <span class="resource-details">(<span id="research-data-production">0</span>/s)</span>
                     </div>
                 </div>
             </section>
@@ -49,52 +53,42 @@
                 <button id="buy-member-button" class="futuristic-button" disabled>RECRUIT OPERATIVE (COST: <span id="new-member-cost">100</span> CREDITS)</button>
             </section>
 
-            <section id="research-section" class="hidden-section">
-                <h2>R & D FACILITY</h2>
-                <div id="research-options-container">
-                    <h3>AVAILABLE PROJECTS</h3>
-                    <div id="research-options">
+            <section id="tech-tree-section" class="hidden-section">
+                <h2>TECHNOLOGY MATRIX</h2>
+                <div id="tech-tree-container" class="skill-tree-wrapper">
+                    </div>
+            </section>
+
+            <section id="building-section" class="hidden-section">
+                <h2>CONSTRUCTION YARD</h2>
+                <div id="build-menu-container">
+                    <h3>AVAILABLE BLUEPRINTS</h3>
+                    <div id="build-options" class="skill-tree-wrapper build-options-grid">
                         </div>
                 </div>
-                <div id="science-tree-container">
-                    <h3>GLOBAL TECH MATRIX</h3>
-                    <div class="skill-tree-wrapper">
+                <div id="active-buildings-container">
+                    <h3>ACTIVE STRUCTURES (<span id="active-building-count">0</span>)</h3>
+                    <div id="active-buildings-list" class="skill-tree-wrapper">
                         </div>
                 </div>
             </section>
 
-            <section id="upgrades-section" class="hidden-section">
-                <h2>SYSTEM UPGRADES</h2>
-                <div id="character-tree-container">
-                    <h3>OPERATIVE ENHANCEMENTS</h3>
-                    <select id="character-upgrade-select" class="futuristic-select hidden">
-                        </select>
-                    <div id="selected-character-tree" class="skill-tree-wrapper">
-                        </div>
-                </div>
-                <div id="manufacturing-tree-container">
-                    <h3>PRODUCTION OPTIMIZATION</h3>
-                     <div class="skill-tree-wrapper">
-                        </div>
-                </div>
-                <div id="banking-tree-container">
-                    <h3>ECONOMIC SYNERGIES</h3>
-                    <div class="skill-tree-wrapper">
-                        </div>
-                </div>
+            <section id="credit-actions-section" class="hidden-section">
+                <h2>STRATEGIC OPERATIONS</h2>
+                <div id="credit-actions-container" class="credit-actions-grid">
+                    </div>
             </section>
+
         </main>
 
         <footer>
-            <p>SYSTEM ONLINE | Version 3.0</p>
+            <p>SYSTEM ONLINE | Version 4.0</p>
         </footer>
     </div>
 
     <script src="js/resources.js"></script>
     <script src="js/teams.js"></script>
-    <script src="js/upgrades.js"></script>
-    <script src="js/research.js"></script>
-    <script src="js/ui.js"></script>
+    <script src="js/techTree.js"></script> <script src="js/buildings.js"></script> <script src="js/creditActions.js"></script> <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

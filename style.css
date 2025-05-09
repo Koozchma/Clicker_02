@@ -1,16 +1,16 @@
 /* style.css */
 :root {
-    --primary-bg: #0a0f18; /* Very dark blue, almost black */
-    --secondary-bg: #101828; /* Dark blue */
-    --tertiary-bg: #182038; /* Slightly lighter dark blue for cards */
-    --accent-color1: #00ffff; /* Cyan / Aqua */
+    --primary-bg: #0a0f18;
+    --secondary-bg: #101828;
+    --tertiary-bg: #182038;
+    --accent-color1: #00ffff; /* Cyan */
     --accent-color2: #ff9800; /* Orange */
-    --text-color-primary: #e0e0fc; /* Light lavender / off-white */
-    --text-color-secondary: #a0a0cc; /* Muted lavender */
+    --text-color-primary: #e0e0fc;
+    --text-color-secondary: #a0a0cc;
     --border-color: var(--accent-color1);
-    --glow-color: rgba(0, 255, 255, 0.5); /* Cyan glow */
-    --font-primary: 'Orbitron', sans-serif; /* Futuristic, for headers */
-    --font-secondary: 'Roboto Mono', monospace; /* For body text, numbers */
+    --glow-color: rgba(0, 255, 255, 0.5);
+    --font-primary: 'Orbitron', sans-serif;
+    --font-secondary: 'Roboto Mono', monospace;
     --font-size-base: 0.85rem;
     --font-size-small: 0.75rem;
     --font-size-large: 1.5rem;
@@ -27,11 +27,11 @@ body {
     padding: 0;
     font-size: var(--font-size-base);
     line-height: 1.5;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
 }
 
 #game-container {
-    max-width: 1400px; /* Allow wider layout */
+    max-width: 1600px; /* Wider for more sections */
     margin: 0 auto;
     padding: var(--padding-medium);
 }
@@ -55,9 +55,10 @@ header h1 {
 }
 
 main {
-    padding: 0; /* Remove main padding, sections will handle it */
+    padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Smaller minmax */
+    /* Adjust grid for potentially more columns or allow wrapping */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--padding-medium);
 }
 
@@ -68,6 +69,8 @@ section {
     border: 1px solid var(--border-color);
     box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
     transition: box-shadow 0.3s ease;
+    display: flex; /* Added for better internal layout control */
+    flex-direction: column; /* Default stack content vertically */
 }
 section:hover {
     box-shadow: 0 0 12px var(--glow-color);
@@ -80,7 +83,7 @@ h2, h3 {
     padding-bottom: var(--padding-small);
     margin-top: 0;
     margin-bottom: var(--padding-medium);
-    font-size: 1.1rem; /* Smaller headings */
+    font-size: 1.1rem;
     text-transform: uppercase;
 }
 h3 {
@@ -89,13 +92,13 @@ h3 {
 }
 
 #resource-display {
-    cursor: pointer; /* For click-to-gain feature */
-    user-select: none; /* Prevent text selection on click */
+    cursor: pointer;
+    user-select: none;
 }
 
 .resource-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Single column for smaller resource display */
+    grid-template-columns: 1fr;
     gap: var(--padding-small);
 }
 
@@ -103,25 +106,41 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px; /* Reduced padding */
+    padding: 5px;
     background-color: rgba(0,0,0,0.2);
     border-radius: var(--border-radius);
     border-left: 3px solid var(--accent-color2);
+    flex-wrap: wrap; /* Allow details to wrap */
 }
 
 .resource-label {
     font-weight: bold;
     color: var(--text-color-secondary);
     font-size: var(--font-size-small);
+    margin-right: auto; /* Push value and details to the right */
 }
 
 .resource-value {
     font-weight: bold;
     color: var(--accent-color1);
     font-size: var(--font-size-base);
-    min-width: 60px; /* Ensure some space for numbers */
+    min-width: 60px;
     text-align: right;
+    margin-left: 10px; /* Space before value */
 }
+.resource-details {
+    font-size: var(--font-size-small);
+    color: var(--text-color-secondary);
+    margin-left: 8px;
+    white-space: nowrap;
+}
+#energy-consumption, #energy-net.negative {
+    color: #ff6b6b; /* Red for consumption and negative net */
+}
+#energy-net.positive {
+    color: #6bff6b; /* Green for positive net */
+}
+
 
 .futuristic-button, button, select.futuristic-select {
     background: linear-gradient(145deg, var(--accent-color2), #d87800);
@@ -131,7 +150,7 @@ h3 {
     border-radius: var(--border-radius);
     cursor: pointer;
     font-family: var(--font-secondary);
-    font-size: var(--font-size-small); /* Smaller buttons */
+    font-size: var(--font-size-small);
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s ease;
@@ -161,7 +180,7 @@ h3 {
 select.futuristic-select {
     width: 100%;
     margin-bottom: var(--padding-medium);
-    background-color: var(--secondary-bg); /* Darker background for select */
+    background-color: var(--secondary-bg);
     color: var(--text-color-primary);
     border: 1px solid var(--accent-color1);
 }
@@ -176,17 +195,22 @@ select.futuristic-select option {
 }
 
 .active-section {
+    display: flex !important; /* Use flex for sections if they were set to flex */
+}
+/* If a section was block, use block !important */
+#team-selection.active-section { /* Example if team-selection was block */
     display: block !important;
 }
+
 
 #initial-team-options .team-option,
 #team-members-container .team-member-card {
     background-color: var(--secondary-bg);
     border: 1px solid var(--accent-color1);
-    padding: var(--padding-small); /* Reduced padding */
+    padding: var(--padding-small);
     margin-bottom: var(--padding-small);
     border-radius: var(--border-radius);
-    cursor: default; /* Default for card, buttons are cursors */
+    cursor: default;
     transition: background-color 0.3s ease;
 }
 #initial-team-options .team-option {
@@ -202,11 +226,11 @@ select.futuristic-select option {
     margin-bottom: var(--padding-small);
     color: var(--accent-color1);
     font-family: var(--font-primary);
-    font-size: 1rem; /* Slightly smaller */
+    font-size: 1rem;
 }
 
 .team-member-card p {
-    margin: 3px 0; /* Reduced margin */
+    margin: 3px 0;
     font-size: var(--font-size-small);
     color: var(--text-color-secondary);
 }
@@ -217,15 +241,15 @@ select.futuristic-select option {
 .team-member-card .assignment-buttons {
     margin-top: var(--padding-small);
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
+    flex-wrap: wrap;
     gap: 5px;
 }
 
 .team-member-card .assignment-buttons button {
-    padding: 5px 8px; /* Smaller buttons */
+    padding: 5px 8px;
     font-size: 0.7rem;
-    flex-grow: 1; /* Make buttons take available space */
-    min-width: 80px; /* Minimum width for readability */
+    flex-grow: 1;
+    min-width: 70px; /* Adjusted min-width */
 }
 
 .team-member-card .assignment-buttons button.assigned {
@@ -236,20 +260,21 @@ select.futuristic-select option {
 }
 
 .skill-tree-wrapper {
-    max-height: 250px; /* Limit height and make scrollable */
+    flex-grow: 1; /* Allow wrapper to take available space */
+    max-height: 300px; /* Increased max-height */
     overflow-y: auto;
-    padding-right: 5px; /* For scrollbar */
+    padding-right: 5px;
     border: 1px dashed var(--secondary-bg);
     border-radius: var(--border-radius);
     margin-top: var(--padding-small);
 }
 
-.skill-tree, .research-options-list {
+.skill-tree, .research-options-list, .build-options-list, .active-buildings-list-ul {
     list-style: none;
     padding: 0;
 }
 
-.skill-tree li, .research-options-list li {
+.skill-tree li, .research-options-list li, .build-options-list li, .active-buildings-list-ul li, .credit-action-card {
     background-color: var(--secondary-bg);
     padding: var(--padding-small);
     margin-bottom: var(--padding-small);
@@ -257,24 +282,74 @@ select.futuristic-select option {
     border-left: 3px solid var(--accent-color2);
     font-size: var(--font-size-small);
     transition: background-color 0.2s;
+    display: flex; /* For better internal alignment */
+    flex-direction: column; /* Stack content vertically */
 }
-.skill-tree li:hover, .research-options-list li:hover {
+.skill-tree li:hover, .research-options-list li:hover, .build-options-list li:hover, .active-buildings-list-ul li:hover, .credit-action-card:hover {
     background-color: var(--tertiary-bg);
 }
 
-
-.skill-tree button, .research-options-list button {
-    margin-left: var(--padding-small);
-    font-size: 0.7rem; /* Smaller buttons in lists */
-    padding: 4px 8px;
-    float: right; /* Align button to the right */
+.skill-tree li div, .build-options-list li div, .active-buildings-list-ul li div, .credit-action-card div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.skill-tree li .upgrade-info, .build-options-list li .build-info, .active-buildings-list-ul li .building-info, .credit-action-card .action-info {
+    flex-grow: 1;
 }
 
-.skill-tree small, .research-options-list small {
+
+.skill-tree button, .research-options-list button, .build-options-list button, .credit-action-card button {
+    margin-left: var(--padding-small);
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    /* float: right; Removed float for flex alignment */
+    align-self: center; /* Align button nicely if alone */
+}
+
+.skill-tree small, .research-options-list small, .build-options-list small, .active-buildings-list-ul small, .credit-action-card small {
     display: block;
     color: var(--text-color-secondary);
     font-size: 0.7rem;
     margin-top: 2px;
+}
+.cost-text, .req-text, .desc-text, .upkeep-text, .production-text {
+    font-size: 0.7rem;
+    color: var(--text-color-secondary);
+}
+.cost-text strong, .upkeep-text strong, .production-text strong {
+    color: var(--text-color-primary);
+}
+
+/* Build options grid */
+.build-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--padding-small);
+}
+.build-options-grid li { /* Style individual build items */
+    /* flex-direction already column from shared style */
+}
+
+/* Credit Actions Grid */
+.credit-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--padding-medium);
+    margin-top: var(--padding-small);
+}
+.credit-action-card {
+    /* Styles inherited, can add specific ones */
+    border-left-color: var(--accent-color1); /* Differentiate credit actions */
+}
+.credit-action-card button {
+    width: 100%; /* Make button full width in card */
+    margin-top: var(--padding-small);
+}
+.active-effect {
+    color: var(--accent-color1);
+    font-weight: bold;
 }
 
 
@@ -290,12 +365,10 @@ footer {
     font-size: var(--font-size-small);
 }
 
-/* Utility class for dynamically shown elements */
 .hidden {
-    display: none !important; /* Important to override other display properties */
+    display: none !important;
 }
 
-/* Scrollbar styling for a more futuristic feel */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -312,18 +385,17 @@ footer {
     background: var(--accent-color2);
 }
 
-/* Progress bar for research */
 .research-progress-bar-bg {
     width: 100%;
     background-color: var(--secondary-bg);
     border-radius: 3px;
     margin-top: 5px;
-    height: 8px; /* Slimmer progress bar */
+    height: 8px;
     border: 1px solid var(--accent-color1);
 }
 .research-progress-bar-fill {
     background-color: var(--accent-color2);
     height: 100%;
-    border-radius: 2px; /* Slightly smaller radius for fill */
+    border-radius: 2px;
     transition: width 0.2s ease-out;
 }
