@@ -2,35 +2,45 @@
 
 let teamMembers = [];
 const MAX_TEAM_MEMBERS = 7;
-let nextMemberCost = 100; // Initial cost for the second member
+let nextMemberCost = 100; // Initial cost for the second member (Credits)
 
 const initialTeamChoices = [
     {
         id: 'alpha_01',
-        name: 'Jax "Sparky" Volkov',
+        name: 'Jax "Spark" Volkov', // Shortened name
         stats: { energy: 3, manufacturing: 1, coin: 1, science: 1 },
         excelsAt: 'energy',
-        description: 'A brilliant engineer, always tinkering. Excels at energy harvesting.',
-        cost: 0, // First one is free
-        assignment: null, // 'energy', 'manufacturing', 'coin'
-        upgrades: {} // Character specific upgrades
+        description: 'Energy systems specialist. Boosts ENERGY output.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
     },
     {
         id: 'beta_01',
         name: 'Lyra "Forge" Chen',
         stats: { energy: 1, manufacturing: 3, coin: 1, science: 1 },
         excelsAt: 'manufacturing',
-        description: 'Master craftswoman with an eye for efficiency. Excels at manufacturing.',
+        description: 'Materiel fabrication expert. Boosts MATERIEL output.',
         cost: 0,
         assignment: null,
         upgrades: {}
     },
     {
         id: 'gamma_01',
-        name: 'Silas "Goldfinger" Sterling',
+        name: 'Silas "Broker" Sterling', // Changed nickname
         stats: { energy: 1, manufacturing: 1, coin: 3, science: 1 },
         excelsAt: 'coin',
-        description: 'A shrewd negotiator with a knack for finding profit. Excels at coin generation.',
+        description: 'Economic strategist. Boosts CREDITS acquisition.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
+    },
+    {
+        id: 'delta_01',
+        name: 'Dr. Aris "Insight" Thorne',
+        stats: { energy: 1, manufacturing: 1, coin: 1, science: 3 },
+        excelsAt: 'science',
+        description: 'Lead researcher. Boosts RESEARCH DATA generation.',
         cost: 0,
         assignment: null,
         upgrades: {}
@@ -45,21 +55,21 @@ function addTeamMember(memberData) {
     if (teamMembers.length < MAX_TEAM_MEMBERS) {
         const newMember = { ...memberData, id: `${memberData.name.split(' ')[0]}_${Date.now()}`, assignment: null, upgrades: {} };
         teamMembers.push(newMember);
-        if (teamMembers.length > 1) { // First member is free
-            nextMemberCost = Math.floor(nextMemberCost * 1.8); // Increase cost for the next one
+        if (teamMembers.length > 1) {
+            nextMemberCost = Math.floor(nextMemberCost * 1.75); // Slightly adjusted cost curve
         }
-        console.log(`${newMember.name} added to the team.`);
+        console.log(`Operative ${newMember.name} recruited.`);
         return newMember;
     }
-    console.log("Maximum team members reached.");
+    console.log("Maximum operative capacity reached.");
     return null;
 }
 
-function assignMemberToTask(memberId, task) { // task: 'energy', 'manufacturing', 'coin'
+function assignMemberToTask(memberId, task) { // task: 'energy', 'manufacturing', 'coin', 'science'
     const member = teamMembers.find(m => m.id === memberId);
     if (member) {
         member.assignment = task;
-        console.log(`${member.name} assigned to ${task}.`);
+        console.log(`${member.name} assigned to ${task.toUpperCase()} protocol.`);
         updateTeamDisplay(); // Refresh UI
         return true;
     }
@@ -67,15 +77,15 @@ function assignMemberToTask(memberId, task) { // task: 'energy', 'manufacturing'
 }
 
 function getMemberContribution(member, taskType) {
-    let contribution = 1; // Base contribution
+    let contribution = 1; // Base contribution per tick
     if (member.stats && member.stats[taskType]) {
-        contribution = member.stats[taskType]; // Use base stat for the task
+        contribution = member.stats[taskType];
     }
     if (member.excelsAt === taskType) {
-        contribution *= 1.5; // Bonus for excelling (example)
+        contribution *= 1.5; // 50% bonus for excelling
     }
-    // Later, add effects from character-specific upgrades
-    // e.g., if (member.upgrades.someUpgrade) contribution *= upgradeBonus;
+    // TODO: Add effects from character-specific upgrades
+    // e.g., if (member.upgrades.someUpgradeForTaskType) contribution *= upgradeBonus;
     return contribution;
 }
 
@@ -83,6 +93,7 @@ function calculateResourceGeneration() {
     let energyGeneration = 0;
     let manufacturingGeneration = 0;
     let coinGeneration = 0;
+    let scienceGeneration = 0;
 
     teamMembers.forEach(member => {
         if (member.assignment) {
@@ -97,11 +108,19 @@ function calculateResourceGeneration() {
                 case 'coin':
                     coinGeneration += contribution;
                     break;
+                case 'science':
+                    scienceGeneration += contribution;
+                    break;
             }
         }
     });
 
-    return { energy: energyGeneration, manufacturing: manufacturingGeneration, coin: coinGeneration };
+    return {
+        energy: energyGeneration,
+        manufacturing: manufacturingGeneration,
+        coin: coinGeneration,
+        science: scienceGeneration
+    };
 }
 
 function canPurchaseNewMember() {
@@ -114,12 +133,11 @@ function getNextMemberCost() {
 
 function purchaseNewTeamMember() {
     if (canPurchaseNewMember() && spendResource('coin', getNextMemberCost())) {
-        // For now, let's add a generic member. Later, this could be a choice.
         const newMemberData = {
-            name: `Recruit #${teamMembers.length +1}`,
-            stats: { energy: 1, manufacturing: 1, coin: 1, science: 0.5 }, // Lesser stats for purchased ones initially
-            excelsAt: null, // Can be specialized later
-            description: 'A new recruit, eager to learn.',
+            name: `Operative Unit ${teamMembers.length + 1}`,
+            stats: { energy: 1, manufacturing: 1, coin: 1, science: 1 }, // Generic stats for purchased ones
+            excelsAt: null,
+            description: 'A versatile operative unit, awaiting specialization.',
             cost: getNextMemberCost()
         };
         const added = addTeamMember(newMemberData);
@@ -130,6 +148,6 @@ function purchaseNewTeamMember() {
         }
         return added;
     }
-    console.log("Cannot purchase new member. Not enough coins or team is full.");
+    console.log("Recruitment failed: Insufficient CREDITS or operative capacity full.");
     return null;
 }
