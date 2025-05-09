@@ -1,6 +1,6 @@
 // js/ui.js
 
-// Element selectors
+// Main Resource Display Elements
 const energyCountEl = document.getElementById('energy-count');
 const energyProductionEl = document.getElementById('energy-production');
 const energyConsumptionEl = document.getElementById('energy-consumption');
@@ -8,38 +8,44 @@ const energyNetEl = document.getElementById('energy-net');
 
 const manufacturingCountEl = document.getElementById('manufacturing-count');
 const materialProductionEl = document.getElementById('material-production');
+const materialConsumptionEl = document.getElementById('material-consumption'); // New
+const materialNetEl = document.getElementById('material-net');             // New
 
 const coinCountEl = document.getElementById('coin-count');
 const creditsProductionEl = document.getElementById('credits-production');
+const creditsConsumptionEl = document.getElementById('credits-consumption'); // New
+const creditsNetEl = document.getElementById('credits-net');               // New
 
 const scienceCountEl = document.getElementById('science-count');
 const researchDataProductionEl = document.getElementById('research-data-production');
+const researchDataConsumptionEl = document.getElementById('research-data-consumption'); // New
+const researchDataNetEl = document.getElementById('research-data-net');               // New
 
-
+// Section Elements
 const teamSelectionSection = document.getElementById('team-selection');
 const teamManagementSection = document.getElementById('team-management');
-const techTreeSection = document.getElementById('tech-tree-section'); // New
-const buildingSection = document.getElementById('building-section'); // New
-const creditActionsSection = document.getElementById('credit-actions-section'); // New
+const techTreeSection = document.getElementById('tech-tree-section');
+const buildingSection = document.getElementById('building-section');
+const creditActionsSection = document.getElementById('credit-actions-section');
 
-
+// Team Management Specific
 const initialTeamOptionsContainer = document.getElementById('initial-team-options');
 const teamMembersContainer = document.getElementById('team-members-container');
 const buyMemberButton = document.getElementById('buy-member-button');
 const newMemberCostSpan = document.getElementById('new-member-cost');
+const toggleOperativeManagementButton = document.getElementById('toggle-operative-management-button'); // New Button
 
+// Other UI Containers
 const techTreeContainer = document.getElementById('tech-tree-container');
 const buildOptionsContainer = document.getElementById('build-options');
 const activeBuildingsListContainer = document.getElementById('active-buildings-list');
 const activeBuildingCountEl = document.getElementById('active-building-count');
 const creditActionsContainer = document.getElementById('credit-actions-container');
 
-const characterUpgradeSelect = document.getElementById('character-upgrade-select'); // This was for old upgrades, may be removed or repurposed. For now, keep for team display.
-
 
 function formatNumber(num, decimals = 2) {
     if (num === null || num === undefined) return '0.00';
-    if (Math.abs(num) < 0.005 && num !== 0) return num.toExponential(decimals > 0 ? decimals -1 : 0);
+    if (Math.abs(num) < 0.005 && num !== 0) return num.toExponential(decimals > 0 ? Math.max(0, decimals -1) : 0);
     if (Math.abs(num) < 1) return num.toFixed(decimals);
     if (Math.abs(num) < 1000) return num.toFixed(decimals);
 
@@ -63,50 +69,108 @@ function updateResourceDisplay() {
     if(scienceCountEl) scienceCountEl.textContent = formatNumber(getResource('science'));
 
     // Detailed production/consumption rates
-    // These values (totalEnergyProduction, etc.) are now updated in resources.js via updateResourceFlowRates
-    // which is called by buildings.js
-    const teamGen = calculateTeamPassiveGeneration(); // Get passive generation from team
+    const teamGen = calculateTeamPassiveGeneration(); // from teams.js
+    // totalRates is from resources.js, updated by updateResourceFlowRates
+    const currentRates = totalRates;
 
-    // Energy Details
-    const currentEnergyProd = totalEnergyProduction + teamGen.energy;
-    const currentEnergyCons = totalEnergyConsumption; // From buildings only for now
-    const netEnergy = currentEnergyProd - currentEnergyCons;
-
-    if(energyProductionEl) energyProductionEl.textContent = formatNumber(currentEnergyProd);
-    if(energyConsumptionEl) energyConsumptionEl.textContent = formatNumber(currentEnergyCons);
+    // Energy
+    const energyProd = (currentRates.energy.production + teamGen.energy);
+    const energyCons = currentRates.energy.consumption;
+    const energyNet = energyProd - energyCons;
+    if(energyProductionEl) energyProductionEl.textContent = formatNumber(energyProd);
+    if(energyConsumptionEl) energyConsumptionEl.textContent = formatNumber(energyCons);
     if(energyNetEl) {
-        energyNetEl.textContent = formatNumber(netEnergy);
-        energyNetEl.className = netEnergy >= 0 ? 'resource-details positive' : 'resource-details negative';
+        energyNetEl.textContent = formatNumber(energyNet);
+        energyNetEl.className = energyNet >= 0 ? 'resource-details positive' : 'resource-details negative';
+        if(energyConsumptionEl) energyConsumptionEl.classList.toggle('negative', energyCons > 0);
+
+    }
+
+    // Material
+    const materialProd = (currentRates.manufacturing.production + teamGen.manufacturing);
+    const materialCons = currentRates.manufacturing.consumption; // Will be 0 for now
+    const materialNet = materialProd - materialCons;
+    if(materialProductionEl) materialProductionEl.textContent = formatNumber(materialProd);
+    if(materialConsumptionEl) materialConsumptionEl.textContent = formatNumber(materialCons);
+    if(materialNetEl) {
+        materialNetEl.textContent = formatNumber(materialNet);
+        materialNetEl.className = materialNet >= 0 ? 'resource-details positive' : 'resource-details negative';
+        if(materialConsumptionEl) materialConsumptionEl.classList.toggle('negative', materialCons > 0);
     }
 
 
-    if(materialProductionEl) materialProductionEl.textContent = formatNumber(totalMaterialProduction + teamGen.manufacturing);
-    if(creditsProductionEl) creditsProductionEl.textContent = formatNumber(totalCreditsProduction + teamGen.coin);
-    if(researchDataProductionEl) researchDataProductionEl.textContent = formatNumber(totalResearchDataProduction + teamGen.science);
+    // Credits
+    const creditsProd = (currentRates.coin.production + teamGen.coin);
+    const creditsCons = currentRates.coin.consumption; // Will be 0 for now
+    const creditsNet = creditsProd - creditsCons;
+    if(creditsProductionEl) creditsProductionEl.textContent = formatNumber(creditsProd);
+    if(creditsConsumptionEl) creditsConsumptionEl.textContent = formatNumber(creditsCons);
+    if(creditsNetEl) {
+        creditsNetEl.textContent = formatNumber(creditsNet);
+        creditsNetEl.className = creditsNet >= 0 ? 'resource-details positive' : 'resource-details negative';
+        if(creditsConsumptionEl) creditsConsumptionEl.classList.toggle('negative', creditsCons > 0);
+    }
+
+    // Research Data
+    const researchProd = (currentRates.science.production + teamGen.science);
+    const researchCons = currentRates.science.consumption; // Will be 0 for now
+    const researchNet = researchProd - researchCons;
+    if(researchDataProductionEl) researchDataProductionEl.textContent = formatNumber(researchProd);
+    if(researchDataConsumptionEl) researchDataConsumptionEl.textContent = formatNumber(researchCons);
+    if(researchDataNetEl) {
+        researchDataNetEl.textContent = formatNumber(researchNet);
+        researchDataNetEl.className = researchNet >= 0 ? 'resource-details positive' : 'resource-details negative';
+        if(researchDataConsumptionEl) researchDataConsumptionEl.classList.toggle('negative', researchCons > 0);
+    }
+}
+
+/**
+ * Toggles the visibility of the operative management sections.
+ * If no team members, shows initial selection. Otherwise, shows management view.
+ */
+function toggleOperativeManagementView() {
+    const teamMembersExist = getTeamMembers().length > 0;
+    const teamSelectionVisible = teamSelectionSection && !teamSelectionSection.classList.contains('hidden-section');
+    const teamManagementVisible = teamManagementSection && !teamManagementSection.classList.contains('hidden-section');
+
+    if (teamSelectionVisible || teamManagementVisible) {
+        // If either is visible, hide both
+        if(teamSelectionSection) teamSelectionSection.classList.add('hidden-section');
+        if(teamManagementSection) teamManagementSection.classList.add('hidden-section');
+        if(toggleOperativeManagementButton) toggleOperativeManagementButton.textContent = "OPEN OPERATIVE MANAGEMENT";
+    } else {
+        // If both are hidden, show the appropriate one
+        if (teamMembersExist) {
+            if(teamManagementSection) teamManagementSection.classList.remove('hidden-section');
+            if(teamSelectionSection) teamSelectionSection.classList.add('hidden-section'); // Ensure selection is hidden
+        } else {
+            if(teamSelectionSection) teamSelectionSection.classList.remove('hidden-section');
+            if(teamManagementSection) teamManagementSection.classList.add('hidden-section'); // Ensure management is hidden
+        }
+        if(toggleOperativeManagementButton) toggleOperativeManagementButton.textContent = "CLOSE OPERATIVE MANAGEMENT";
+    }
 }
 
 
-function showSection(sectionId) {
+function showSection(sectionId) { // General section toggling, not for team management
     const sections = [
-        teamSelectionSection, teamManagementSection,
         techTreeSection, buildingSection, creditActionsSection
+        // Team sections are handled by toggleOperativeManagementView
     ];
     sections.forEach(sec => {
         if (sec) {
             if (sec.id === sectionId) {
                 sec.classList.remove('hidden-section');
-                // Ensure 'active-section' uses 'display: flex' as per new CSS
-                sec.style.display = 'flex'; // Explicitly set display, overriding stylesheet if needed for active
+                sec.style.display = 'flex';
             } else {
-                sec.classList.add('hidden-section');
-                sec.style.display = 'none'; // Explicitly hide
+                // This function should not hide other non-managed sections unless explicitly told to.
+                // For now, it only shows one of these three.
+                // If you want a tab-like system, this logic needs adjustment.
+                 // sec.classList.add('hidden-section');
+                 // sec.style.display = 'none';
             }
         }
     });
-     // Special handling for team-selection as it's block
-    if (sectionId === 'team-selection' && teamSelectionSection) {
-        teamSelectionSection.style.display = 'block';
-    }
 }
 
 
@@ -131,18 +195,18 @@ function populateInitialTeamChoices() {
 function selectInitialTeamMember(choiceData) {
     const member = addTeamMember(choiceData);
     if (member) {
-        // Show relevant sections after first pick
+        // After first pick, hide selection and show management
         if(teamSelectionSection) teamSelectionSection.classList.add('hidden-section');
+        if(teamManagementSection) teamManagementSection.classList.remove('hidden-section');
+        if(toggleOperativeManagementButton) toggleOperativeManagementButton.textContent = "CLOSE OPERATIVE MANAGEMENT";
 
-        showSection('team-management');
-        if(techTreeSection) techTreeSection.classList.remove('hidden-section'); // Make Tech Tree available
-        if(buildingSection) buildingSection.classList.remove('hidden-section'); // Make Buildings available
-        if(creditActionsSection) creditActionsSection.classList.remove('hidden-section'); // Make Credits actions available
 
-        updateTeamDisplay();
-        updatePurchaseButton();
-        // populateCharacterUpgradeSelect(); // This was for old system, operatives don't have trees now
-        updateAllDynamicDisplays(); // Update all relevant UI parts
+        // Make other core sections visible for the first time
+        if(techTreeSection && techTreeSection.classList.contains('hidden-section')) techTreeSection.classList.remove('hidden-section');
+        if(buildingSection && buildingSection.classList.contains('hidden-section')) buildingSection.classList.remove('hidden-section');
+        if(creditActionsSection && creditActionsSection.classList.contains('hidden-section')) creditActionsSection.classList.remove('hidden-section');
+
+        updateAllDynamicDisplays();
     }
 }
 
@@ -157,11 +221,9 @@ function updateTeamDisplay() {
             <h4>${member.name} <span style="font-size:0.7em; color: #888;">(ID: ${member.id.substring(0,6)})</span></h4>
             <p><strong>Passive Income/sec:</strong> E:${member.stats.energy}, M:${member.stats.manufacturing}, C:${member.stats.coin}, S:${member.stats.science}</p>
             <p><strong>Specialization:</strong> ${member.excelsAt ? member.excelsAt.charAt(0).toUpperCase() + member.excelsAt.slice(1) : 'N/A'}</p>
-            `;
+        `;
         teamMembersContainer.appendChild(card);
     });
-    // Character upgrade select is no longer primary, can be removed or repurposed later
-    if (characterUpgradeSelect) characterUpgradeSelect.classList.add('hidden');
 }
 
 
@@ -170,13 +232,12 @@ function updatePurchaseButton() {
         newMemberCostSpan.textContent = formatNumber(getNextMemberCost());
         const canBuyAnother = canPurchaseNewMember();
         const enoughCoin = getResource('coin') >= getNextMemberCost();
-        // techTreeData must be defined (from techTree.js)
         const purchaseAbilityUnlocked = (typeof techTreeData !== 'undefined' && techTreeData.unlockTeamSlot2 && techTreeData.unlockTeamSlot2.unlocked);
 
         if (!canBuyAnother) {
             buyMemberButton.disabled = true;
             buyMemberButton.innerHTML = "OPERATIVE CAPACITY MAX";
-        } else if (getTeamMembers().length > 0 && !purchaseAbilityUnlocked) { // For 2nd member onwards
+        } else if (getTeamMembers().length > 0 && !purchaseAbilityUnlocked) {
             buyMemberButton.disabled = true;
             buyMemberButton.title = "Requires 'Expanded Command Structure' from Technology Matrix.";
             buyMemberButton.innerHTML = `RECRUIT (COST: ${formatNumber(getNextMemberCost())} CREDITS)`;
@@ -192,26 +253,24 @@ function updateTechTreeDisplay() {
     if (!techTreeContainer || typeof techTreeData === 'undefined') return;
     techTreeContainer.innerHTML = '';
     const ul = document.createElement('ul');
-    ul.classList.add('skill-tree'); // Re-use class for similar styling
+    ul.classList.add('skill-tree');
 
     Object.values(techTreeData).sort((a,b) => (a.tier || 0) - (b.tier || 0) || a.name.localeCompare(b.name)).forEach(tech => {
         const li = document.createElement('li');
         let costString = Object.entries(tech.cost).map(([res, val]) => `${formatNumber(val)} ${res.charAt(0).toUpperCase() + res.slice(1)}`).join(', ');
         let reqString = tech.requires.length > 0 ? `Req: ${tech.requires.map(rId => techTreeData[rId]?.name || rId).join(', ')}` : 'None';
-
         let unlocksString = "Unlocks: ";
         if (tech.unlocks && tech.unlocks.length > 0) {
             unlocksString += tech.unlocks.map(uk => {
                 if (uk.startsWith('build_')) {
                     const buildingId = uk.replace('build_', '');
-                    return buildingBlueprints[buildingId]?.name || uk;
+                    return (typeof buildingBlueprints !== 'undefined' && buildingBlueprints[buildingId]?.name) || uk;
                 }
-                return uk.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Format special unlocks
+                return uk.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             }).join(', ');
         } else {
             unlocksString += "N/A";
         }
-
 
         li.innerHTML = `
             <div>
@@ -242,11 +301,10 @@ function updateTechTreeDisplay() {
 
 function updateBuildMenu() {
     if (!buildOptionsContainer || typeof buildingBlueprints === 'undefined') return;
-    buildOptionsContainer.innerHTML = ''; // Clear previous options
-    // No <ul> needed directly if using grid for li items
+    buildOptionsContainer.innerHTML = '';
 
     Object.values(buildingBlueprints).filter(bp => bp.unlocked).forEach(blueprint => {
-        const li = document.createElement('li'); // These will be grid items
+        const li = document.createElement('li');
         let costString = Object.entries(blueprint.cost).map(([res, val]) => `${formatNumber(val)} ${res.charAt(0).toUpperCase() + res.slice(1)}`).join(', ');
         let prodString = Object.entries(blueprint.production).map(([res, val]) => `+${formatNumber(val,1)} ${res.charAt(0).toUpperCase() + res.slice(1)}/s`).join(', ');
         let upkeepString = Object.entries(blueprint.upkeep).map(([res, val]) => `-${formatNumber(val,1)} ${res.charAt(0).toUpperCase() + res.slice(1)}/s`).join('; ');
@@ -266,7 +324,7 @@ function updateBuildMenu() {
             </button>
         `;
         const button = li.querySelector('button');
-        if (!maxReached && !canBuild(blueprint.id)) { // canBuild checks cost
+        if (!maxReached && !canBuild(blueprint.id)) {
             button.disabled = true;
             button.title = "Insufficient resources.";
         }
@@ -276,18 +334,18 @@ function updateBuildMenu() {
         buildOptionsContainer.appendChild(li);
     });
      if (buildOptionsContainer.children.length === 0) {
-        buildOptionsContainer.innerHTML = '<p style="text-align:center; color: var(--text-color-secondary); grid-column: 1 / -1;">No blueprints unlocked or available. Research new technologies.</p>';
+        buildOptionsContainer.innerHTML = '<p style="text-align:center; color: var(--text-color-secondary); grid-column: 1 / -1;">No blueprints unlocked. Research new technologies.</p>';
     }
 }
 
 function updateActiveBuildingsDisplay() {
     if (!activeBuildingsListContainer || !activeBuildingCountEl) return;
     activeBuildingsListContainer.innerHTML = '';
-    const buildings = getActiveBuildings(); // from buildings.js
+    const buildings = getActiveBuildings();
     activeBuildingCountEl.textContent = buildings.length;
 
     if (buildings.length === 0) {
-        activeBuildingsListContainer.innerHTML = '<p style="text-align:center; color: var(--text-color-secondary);">No active structures. Construct buildings from available blueprints.</p>';
+        activeBuildingsListContainer.innerHTML = '<p style="text-align:center; color: var(--text-color-secondary);">No active structures.</p>';
         return;
     }
     const ul = document.createElement('ul');
@@ -302,8 +360,8 @@ function updateActiveBuildingsDisplay() {
                 <strong>${building.name}</strong> <small>(ID: ${building.instanceId.slice(-6)})</small><br>
                 <small class="production-text">Output: ${prodString}</small><br>
                 <small class="upkeep-text">Maintenance: ${upkeepString}</small>
-                </div>
-            `;
+            </div>
+        `;
         ul.appendChild(li);
     });
     activeBuildingsListContainer.appendChild(ul);
@@ -311,7 +369,7 @@ function updateActiveBuildingsDisplay() {
 
 function updateCreditActionsDisplay() {
     if (!creditActionsContainer || typeof creditActionsData === 'undefined') return;
-    creditActionsContainer.innerHTML = ''; // Clear previous actions
+    creditActionsContainer.innerHTML = '';
 
     Object.values(creditActionsData).forEach(action => {
         const card = document.createElement('div');
@@ -323,7 +381,6 @@ function updateCreditActionsDisplay() {
         } else if (action.duration > 0) {
             effectDesc = `Duration: ${action.duration}s.`;
         }
-
 
         card.innerHTML = `
             <div class="action-info">
@@ -349,10 +406,6 @@ function updateCreditActionsDisplay() {
     });
 }
 
-/**
- * Central function to update all dynamic UI elements.
- * Call this after major game state changes.
- */
 function updateAllDynamicDisplays() {
     updateResourceDisplay();
     updateTeamDisplay();
@@ -363,16 +416,22 @@ function updateAllDynamicDisplays() {
     updateCreditActionsDisplay();
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
     if(buyMemberButton) buyMemberButton.addEventListener('click', purchaseNewTeamMember);
-    // Operative specific upgrades select removed for now.
-    // if(characterUpgradeSelect) characterUpgradeSelect.addEventListener('change', (e) => displayCharacterSpecificTree(e.target.value));
+    if(toggleOperativeManagementButton) toggleOperativeManagementButton.addEventListener('click', toggleOperativeManagementView);
+
+    // Initially hide sections that are not the resource display or the initial team choice (if applicable)
+    if(teamSelectionSection) teamSelectionSection.classList.add('hidden-section');
+    if(teamManagementSection) teamManagementSection.classList.add('hidden-section');
+    if(techTreeSection) techTreeSection.classList.add('hidden-section');
+    if(buildingSection) buildingSection.classList.add('hidden-section');
+    if(creditActionsSection) creditActionsSection.classList.add('hidden-section');
+
+    // Set initial button text for operative management
+    if(toggleOperativeManagementButton) toggleOperativeManagementButton.textContent = "OPEN OPERATIVE MANAGEMENT";
 
     // Initial state of buy button if no team members yet.
     if (buyMemberButton && typeof getTeamMembers !== 'undefined' && getTeamMembers().length === 0) {
         buyMemberButton.disabled = true;
     }
-    // Other initializations like populating choices are called from initGame in main.js
-    // to ensure game data structures are ready.
 });
