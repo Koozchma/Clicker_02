@@ -1,211 +1,249 @@
-// js/upgrades.js
+// js/techTree.js (formerly upgrades.js)
 
-// IMPORTANT: 'teamMembers' is defined in 'teams.js' and should be globally accessible.
-// This file should NOT redeclare 'teamMembers'.
-
-// Object defining the Science skill tree upgrades
-const scienceTree = {
-    unlockTier1Manufacturing: {
-        id: 'unlockTier1Manufacturing',
-        name: 'Applied Material Science',
-        description: 'Unlocks Tier 1 Material Fabrication research projects.',
-        cost: { science: 50 },
+// Defines the entire technology research tree.
+// Nodes are technologies/blueprints. Unlocking them costs Research Data.
+const techTreeData = {
+    // ENERGY BRANCH
+    basicEnergySystems: {
+        id: 'basicEnergySystems',
+        name: 'Basic Energy Systems',
+        description: 'Fundamental understanding of energy generation. Unlocks Basic Solar Array.',
+        cost: { science: 10 }, // Cost in Research Data
         unlocked: false,
-        requires: [], // No prerequisites for this one
-        onUnlock: () => {
-            console.log("Tech Matrix: Applied Material Science Unlocked! (v3)");
-            // Enable relevant research options
-            if (window.research && typeof window.research.unlockManufacturingCategory === 'function') {
-                window.research.unlockManufacturingCategory('tier1');
-            }
-        }
+        requires: [], // No prerequisites
+        unlocks: ['build_basicSolarArray'], // ID of the building blueprint unlocked
+        branch: 'energy',
+        tier: 1,
+        onUnlock: () => { console.log("Tech Unlocked: Basic Energy Systems"); }
     },
-    unlockTeamSlot2: {
+    improvedSolarPanels: {
+        id: 'improvedSolarPanels',
+        name: 'Improved Solar Panels',
+        description: 'Enhances efficiency of solar arrays. Unlocks Advanced Solar Array.',
+        cost: { science: 50, energy: 200 }, // Example of multi-resource cost
+        unlocked: false,
+        requires: ['basicEnergySystems'],
+        unlocks: ['build_advancedSolarArray'],
+        branch: 'energy',
+        tier: 2,
+        onUnlock: () => { console.log("Tech Unlocked: Improved Solar Panels"); }
+    },
+    fusionPower: {
+        id: 'fusionPower',
+        name: 'Fusion Power',
+        description: 'Breakthrough in energy production. Unlocks Fusion Reactor.',
+        cost: { science: 500, manufacturing: 200 },
+        unlocked: false,
+        requires: ['improvedSolarPanels'], // Could have multiple requirements
+        unlocks: ['build_fusionReactor'],
+        branch: 'energy',
+        tier: 3,
+        onUnlock: () => { console.log("Tech Unlocked: Fusion Power"); }
+    },
+
+    // MATERIAL BRANCH
+    basicMaterialProcessing: {
+        id: 'basicMaterialProcessing',
+        name: 'Basic Material Processing',
+        description: 'Rudimentary techniques for material extraction and fabrication. Unlocks Basic Fabricator.',
+        cost: { science: 20 },
+        unlocked: false,
+        requires: [],
+        unlocks: ['build_basicFabricator'],
+        branch: 'material',
+        tier: 1,
+        onUnlock: () => { console.log("Tech Unlocked: Basic Material Processing"); }
+    },
+    automatedManufacturing: {
+        id: 'automatedManufacturing',
+        name: 'Automated Manufacturing',
+        description: 'Introduces automation to production lines. Unlocks Automated Fabricator.',
+        cost: { science: 100, manufacturing: 50 },
+        unlocked: false,
+        requires: ['basicMaterialProcessing'],
+        unlocks: ['build_automatedFabricator'],
+        branch: 'material',
+        tier: 2,
+        onUnlock: () => { console.log("Tech Unlocked: Automated Manufacturing"); }
+    },
+    syntheticsDevelopment: {
+        id: 'syntheticsDevelopment',
+        name: 'Synthetics Development',
+        description: 'Research into advanced synthetic materials. Unlocks Synthetics Lab.',
+        cost: { science: 300, energy: 500 },
+        unlocked: false,
+        requires: ['automatedManufacturing'],
+        unlocks: ['build_syntheticsLab'],
+        branch: 'material',
+        tier: 3,
+        onUnlock: () => { console.log("Tech Unlocked: Synthetics Development"); }
+    },
+
+    // CREDITS BRANCH
+    basicEconomicModels: {
+        id: 'basicEconomicModels',
+        name: 'Basic Economic Models',
+        description: 'Understanding of trade and value. Unlocks Credit Exchange Terminal.',
+        cost: { science: 15 },
+        unlocked: false,
+        requires: [],
+        unlocks: ['build_creditExchangeTerminal'],
+        branch: 'credits',
+        tier: 1,
+        onUnlock: () => { console.log("Tech Unlocked: Basic Economic Models"); }
+    },
+    quantumFinance: {
+        id: 'quantumFinance',
+        name: 'Quantum Financial Processing',
+        description: 'Advanced algorithms for market prediction and credit generation. Unlocks Quantum Financial Processor.',
+        cost: { science: 400, coin: 1000 },
+        unlocked: false,
+        requires: ['basicEconomicModels', 'automatedManufacturing'], // Example cross-branch requirement
+        unlocks: ['build_quantumFinancialProcessor'],
+        branch: 'credits',
+        tier: 2, // Could be tier 3 depending on desired depth
+        onUnlock: () => { console.log("Tech Unlocked: Quantum Financial Processing"); }
+    },
+
+    // RESEARCH DATA BRANCH
+    methodicalExperimentation: {
+        id: 'methodicalExperimentation',
+        name: 'Methodical Experimentation',
+        description: 'Formalizes the scientific method. Unlocks Basic Science Lab.',
+        cost: { science: 25 },
+        unlocked: false,
+        requires: [],
+        unlocks: ['build_basicScienceLab'],
+        branch: 'research',
+        tier: 1,
+        onUnlock: () => { console.log("Tech Unlocked: Methodical Experimentation"); }
+    },
+    particlePhysics: {
+        id: 'particlePhysics',
+        name: 'Particle Physics Research',
+        description: 'Deepens understanding of fundamental particles. Unlocks Particle Research Array.',
+        cost: { science: 600, energy: 1000, manufacturing: 300 },
+        unlocked: false,
+        requires: ['methodicalExperimentation', 'fusionPower'], // Requires advanced energy
+        unlocks: ['build_particleResearchArray'],
+        branch: 'research',
+        tier: 2,
+        onUnlock: () => { console.log("Tech Unlocked: Particle Physics Research"); }
+    },
+
+    // GENERAL / TEAM UPGRADES (Example, can be expanded)
+    unlockTeamSlot2: { // Kept from previous version, now part of tech tree
         id: 'unlockTeamSlot2',
         name: 'Expanded Command Structure',
         description: 'Authorizes recruitment of an additional operative.',
-        cost: { science: 25, coin: 50 },
+        cost: { science: 75, coin: 250 }, // Adjusted cost
         unlocked: false,
-        requires: [],
+        requires: ['basicEnergySystems', 'basicMaterialProcessing'], // Requires some basic infrastructure
+        unlocks: ['team_slot_2'], // Special key to indicate team slot unlock
+        branch: 'general',
+        tier: 1,
         onUnlock: () => {
-            console.log("Tech Matrix: Expanded Command Structure research complete! (v3)");
-            // UI update for purchase button is handled by updatePurchaseButton checking this unlock status
-            updatePurchaseButton();
+            console.log("Tech Unlocked: Expanded Command Structure!");
+            updatePurchaseButton(); // UI update for operative recruitment
         }
     },
-    advancedEnergySystems: {
-        id: 'advancedEnergySystems',
-        name: 'Advanced Energy Systems',
-        description: 'Boosts all ENERGY generation by 10%. (Effect placeholder)',
-        cost: { science: 100, energy: 50 },
-        unlocked: false,
-        requires: ['unlockTier1Manufacturing'], // Example prerequisite
-        onUnlock: () => {
-            console.log("Tech Matrix: Advanced Energy Systems Unlocked! (v3)");
-            // TODO: Implement the actual 10% boost logic.
-            // This might involve a global multiplier object or modifying base generation rates.
-        }
-    },
-    basicDataAnalytics: {
-        id: 'basicDataAnalytics',
-        name: 'Basic Data Analytics',
-        description: 'Improves RESEARCH DATA collection efficiency by 5%. (Effect placeholder)',
-        cost: { science: 75 },
-        unlocked: false,
-        requires: [],
-        onUnlock: () => {
-            console.log("Tech Matrix: Basic Data Analytics Unlocked! (v3)");
-            // TODO: Implement the actual 5% boost to science generation.
-        }
-    }
-};
-
-// Object defining the Manufacturing (Material) skill tree upgrades
-const manufacturingTree = {
-    efficientFabricators: {
-        id: 'efficientFabricators',
-        name: 'Efficient Fabricators',
-        description: 'Increases MATERIAL output by 5%. (Effect placeholder)',
-        cost: { manufacturing: 200, coin: 50 },
-        unlocked: false,
-        requires: [], // Could require science unlocks
-        onUnlock: () => {
-            console.log("Production Optimization: Efficient Fabricators Unlocked! (v3)");
-            // TODO: Implement the 5% boost to material output.
-        }
-    }
-};
-
-// Object defining the Banking (Credits) skill tree upgrades
-const bankingTree = {
-    automatedCreditRouting: {
-        id: 'automatedCreditRouting',
-        name: 'Automated Credit Routing',
-        description: 'Generates a small passive CREDIT income. (Effect placeholder)',
-        cost: { coin: 500, science: 50 },
-        unlocked: false,
-        requires: [],
-        onUnlock: () => {
-            console.log("Economic Synergies: Automated Credit Routing Unlocked! (v3)");
-            // TODO: Implement passive credit income.
-        }
-    }
+    // Add more team slots, global efficiency upgrades etc. here
 };
 
 /**
- * Retrieves the specific upgrade definitions for a given character.
- * Note: Character upgrades are stored on the character objects in 'teamMembers' array.
- * @param {string} characterId - The ID of the character.
- * @returns {object} The character's upgrade tree object, or an empty object if none.
+ * Checks if a technology's prerequisites are met.
+ * @param {string} techId - The ID of the technology to check.
+ * @returns {boolean} True if all prerequisites are unlocked, false otherwise.
  */
-function getCharacterUpgrades(characterId) {
-    // 'teamMembers' must be accessible here (defined in teams.js)
-    if (typeof teamMembers === 'undefined') {
-        console.error("CRITICAL: teamMembers array is not accessible in upgrades.js (getCharacterUpgrades)");
-        return {};
+function checkTechRequirements(techId) {
+    const tech = techTreeData[techId];
+    if (!tech || !tech.requires || tech.requires.length === 0) {
+        return true; // No requirements or tech not found (shouldn't happen for valid ID)
     }
-    const character = teamMembers.find(m => m.id === characterId);
-    if (character && character.upgrades) {
-        return character.upgrades;
-    }
-    return {};
+    return tech.requires.every(reqId => techTreeData[reqId] && techTreeData[reqId].unlocked);
 }
 
 /**
- * Checks if the player can afford a given upgrade.
- * @param {object} upgrade - The upgrade object (must have a 'cost' property).
+ * Checks if the player can afford a given technology.
+ * @param {string} techId - The ID of the technology.
  * @returns {boolean} True if affordable, false otherwise.
  */
-function canAffordUpgrade(upgrade) {
-    if (!upgrade || !upgrade.cost) {
-        console.warn("canAffordUpgrade called with invalid upgrade object:", upgrade);
-        return false;
-    }
-    for (const resourceType in upgrade.cost) {
-        if (getResource(resourceType) < upgrade.cost[resourceType]) {
-            return false; // Not enough of at least one resource
-        }
-    }
-    return true; // All resource costs can be met
-}
+function canAffordTech(techId) {
+    const tech = techTreeData[techId];
+    if (!tech || !tech.cost) return false;
 
-/**
- * Attempts to purchase an upgrade from a specified tree.
- * @param {string} treeKey - The key identifying the tree (e.g., 'science', 'manufacturing').
- * @param {string} upgradeId - The ID of the upgrade to purchase.
- * @returns {boolean} True if purchase was successful, false otherwise.
- */
-function purchaseUpgrade(treeKey, upgradeId) {
-    let upgrade;
-    let actualTreeObject;
-
-    // Select the correct tree object based on treeKey
-    switch (treeKey) {
-        case 'science': actualTreeObject = scienceTree; break;
-        case 'manufacturing': actualTreeObject = manufacturingTree; break;
-        case 'banking': actualTreeObject = bankingTree; break;
-        // TODO: Add case for 'character' if character-specific upgrades are purchased through a similar mechanism
-        default:
-            console.error(`Unknown upgrade tree key: ${treeKey} (v3)`);
+    for (const resourceType in tech.cost) {
+        if (getResource(resourceType) < tech.cost[resourceType]) {
             return false;
-    }
-    upgrade = actualTreeObject[upgradeId];
-
-    if (!upgrade) {
-        console.error(`Upgrade with ID '${upgradeId}' not found in tree '${treeKey}'. (v3)`);
-        return false;
-    }
-    if (upgrade.unlocked) {
-        console.info(`Upgrade '${upgrade.name}' is already unlocked. (v3)`);
-        return false;
-    }
-    if (!canAffordUpgrade(upgrade)) {
-        console.info(`Cannot afford upgrade '${upgrade.name}'. (v3)`);
-        // alert("Insufficient resources for this upgrade."); // Optional user feedback
-        return false;
-    }
-
-    // Check prerequisites
-    let requirementsMet = true;
-    if (upgrade.requires && upgrade.requires.length > 0) {
-        for (const reqId of upgrade.requires) {
-            // Prerequisites are typically from the scienceTree or the same tree
-            const requiredUpgrade = scienceTree[reqId] || actualTreeObject[reqId];
-            if (!requiredUpgrade || !requiredUpgrade.unlocked) {
-                requirementsMet = false;
-                alert(`Requirement not met: ${requiredUpgrade ? requiredUpgrade.name : reqId}`);
-                break;
-            }
         }
     }
-
-    if (requirementsMet) {
-        // Spend resources
-        for (const resourceType in upgrade.cost) {
-            spendResource(resourceType, upgrade.cost[resourceType]);
-        }
-        upgrade.unlocked = true; // Mark as unlocked
-        if (typeof upgrade.onUnlock === 'function') {
-            upgrade.onUnlock(); // Execute any specific unlock actions
-        }
-        console.log(`Upgrade Acquired: ${upgrade.name} (Tree: ${treeKey}) (v3)`);
-
-        // Refresh UI elements
-        updateResourceDisplay();
-        updateAllTreesDisplay(); // This will refresh the specific tree and potentially others
-
-        return true;
-    } else {
-        console.info(`Prerequisites not met for upgrade '${upgrade.name}'. (v3)`);
-    }
-    return false;
+    return true;
 }
 
 /**
- * Initializes the upgrade system.
- * (Currently, no specific actions needed beyond global setup and tree definitions)
+ * Attempts to unlock a technology in the Tech Tree.
+ * @param {string} techId - The ID of the technology to unlock.
+ * @returns {boolean} True if technology was successfully unlocked, false otherwise.
  */
-function initUpgrades() {
-    console.log("Upgrade System Interface Online (v3)");
-    // Future: Load saved upgrade states from localStorage, etc.
+function unlockTechnology(techId) {
+    const tech = techTreeData[techId];
+    if (!tech) {
+        console.error(`Technology with ID '${techId}' not found. (v4)`);
+        return false;
+    }
+    if (tech.unlocked) {
+        console.info(`Technology '${tech.name}' is already unlocked. (v4)`);
+        return false;
+    }
+    if (!checkTechRequirements(techId)) {
+        alert(`Prerequisites not met for ${tech.name}.`);
+        console.info(`Prerequisites not met for ${tech.name}. (v4)`);
+        return false;
+    }
+    if (!canAffordTech(techId)) {
+        alert(`Insufficient resources to unlock ${tech.name}.`);
+        console.info(`Insufficient resources for ${tech.name}. (v4)`);
+        return false;
+    }
+
+    // Spend resources
+    for (const resourceType in tech.cost) {
+        spendResource(resourceType, tech.cost[resourceType]);
+    }
+
+    tech.unlocked = true; // Mark as unlocked
+
+    // Handle what this tech unlocks (e.g., building blueprints)
+    if (tech.unlocks && Array.isArray(tech.unlocks)) {
+        tech.unlocks.forEach(unlockKey => {
+            if (unlockKey.startsWith('build_')) {
+                const buildingId = unlockKey.replace('build_', '');
+                unlockBuildingBlueprint(buildingId); // This function will be in buildings.js
+            } else if (unlockKey.startsWith('team_slot_')) {
+                // Handle team slot unlocks directly or via a callback
+                console.log(`Team slot unlock triggered: ${unlockKey}`);
+            }
+            // Add more types of unlocks here (e.g., global bonuses, new credit actions)
+        });
+    }
+
+
+    if (typeof tech.onUnlock === 'function') {
+        tech.onUnlock(); // Execute any specific unlock actions
+    }
+    console.log(`Technology Unlocked: ${tech.name} (v4)`);
+
+    // Refresh UI
+    updateResourceDisplay();
+    updateTechTreeDisplay(); // Refresh the tech tree UI
+    updateBuildMenu();      // Refresh build menu as new buildings might be available
+    // updateCreditActionsDisplay(); // If techs unlock credit actions
+
+    return true;
+}
+
+
+function initTechTree() {
+    console.log("Technology Matrix Systems Online (v4)");
+    // Future: Load saved tech tree states
 }
