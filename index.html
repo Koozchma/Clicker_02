@@ -3,83 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolving Clicker</title>
+    <title>Evolving Clicker v2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Evolving Clicker</h1>
-    </header>
+    <div id="game-container">
+        <header>
+            <h1>EVOLVING CLICKER</h1>
+        </header>
 
-    <main>
-        <section id="resource-display">
-            <h2>Resources</h2>
-            <div class="resource">
-                <span class="resource-label">Energy:</span>
-                <span id="energy-count">0</span>
-            </div>
-            <div class="resource">
-                <span class="resource-label">Manufacturing Output:</span>
-                <span id="manufacturing-count">0</span>
-            </div>
-            <div class="resource">
-                <span class="resource-label">Coin:</span>
-                <span id="coin-count">0</span>
-            </div>
-            <div class="resource">
-                <span class="resource-label">Science:</span>
-                <span id="science-count">0</span>
-            </div>
-        </section>
-
-        <section id="team-selection" class="active-section">
-            <h2>Choose Your First Team Member</h2>
-            <div id="initial-team-options">
-                </div>
-        </section>
-
-        <section id="team-management" class="hidden-section">
-            <h2>Team Management</h2>
-            <div id="team-members-container">
-                </div>
-            <button id="buy-member-button" disabled>Purchase New Member (Cost: <span id="new-member-cost">100</span> Coin)</button>
-        </section>
-
-        <section id="research-section" class="hidden-section">
-            <h2>Research & Development</h2>
-            <p>Unlock new technologies and game features.</p>
-            <div id="research-options">
-                </div>
-            <div id="science-tree-container">
-                <h3>Global Science Tree</h3>
-                </div>
-        </section>
-
-        <section id="upgrades-section" class="hidden-section">
-            <h2>Upgrades</h2>
-            <div id="character-tree-container">
-                <h3>Character Specific Upgrades</h3>
-                <select id="character-upgrade-select" class="hidden">
-                    </select>
-                <div id="selected-character-tree">
+        <main>
+            <section id="resource-display" title="Click here to manually collect resources!">
+                <h2>SYSTEM RESOURCES</h2>
+                <div class="resource-grid">
+                    <div class="resource">
+                        <span class="resource-label">ENERGY:</span>
+                        <span id="energy-count" class="resource-value">0</span>
                     </div>
-            </div>
-            <div id="manufacturing-tree-container">
-                <h3>Manufacturing Tree</h3>
+                    <div class="resource">
+                        <span class="resource-label">MATERIEL:</span>
+                        <span id="manufacturing-count" class="resource-value">0</span>
+                    </div>
+                    <div class="resource">
+                        <span class="resource-label">CREDITS:</span>
+                        <span id="coin-count" class="resource-value">0</span>
+                    </div>
+                    <div class="resource">
+                        <span class="resource-label">RESEARCH DATA:</span>
+                        <span id="science-count" class="resource-value">0</span>
+                    </div>
                 </div>
-            <div id="banking-tree-container">
-                <h3>Banking Tree</h3>
+            </section>
+
+            <section id="team-selection" class="active-section">
+                <h2>INITIALIZE CORE TEAM</h2>
+                <div id="initial-team-options">
+                    </div>
+            </section>
+
+            <section id="team-management" class="hidden-section">
+                <h2>OPERATIVE MANAGEMENT</h2>
+                <div id="team-members-container">
+                    </div>
+                <button id="buy-member-button" class="futuristic-button" disabled>RECRUIT OPERATIVE (COST: <span id="new-member-cost">100</span> CREDITS)</button>
+            </section>
+
+            <section id="research-section" class="hidden-section">
+                <h2>R & D FACILITY</h2>
+                <div id="research-options-container">
+                    <h3>AVAILABLE PROJECTS</h3>
+                    <div id="research-options">
+                        </div>
                 </div>
-        </section>
+                <div id="science-tree-container">
+                    <h3>GLOBAL TECH MATRIX</h3>
+                    <div class="skill-tree-wrapper">
+                        </div>
+                </div>
+            </section>
 
-    </main>
+            <section id="upgrades-section" class="hidden-section">
+                <h2>SYSTEM UPGRADES</h2>
+                <div id="character-tree-container">
+                    <h3>OPERATIVE ENHANCEMENTS</h3>
+                    <select id="character-upgrade-select" class="futuristic-select hidden">
+                        </select>
+                    <div id="selected-character-tree" class="skill-tree-wrapper">
+                        </div>
+                </div>
+                <div id="manufacturing-tree-container">
+                    <h3>PRODUCTION OPTIMIZATION</h3>
+                     <div class="skill-tree-wrapper">
+                        </div>
+                </div>
+                <div id="banking-tree-container">
+                    <h3>ECONOMIC SYNERGIES</h3>
+                    <div class="skill-tree-wrapper">
+                        </div>
+                </div>
+            </section>
+        </main>
 
-    <footer>
-        <p>Game In Development</p>
-    </footer>
+        <footer>
+            <p>SYSTEM ONLINE | Version 2.0</p>
+        </footer>
+    </div>
 
-    <script src="js/teams.js"></script>
     <script src="js/resources.js"></script>
+    <script src="js/teams.js"></script>
     <script src="js/upgrades.js"></script>
     <script src="js/research.js"></script>
     <script src="js/ui.js"></script>
