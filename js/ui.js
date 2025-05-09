@@ -17,12 +17,13 @@ const buyMemberButton = document.getElementById('buy-member-button');
 const newMemberCostSpan = document.getElementById('new-member-cost');
 
 const researchOptionsContainer = document.getElementById('research-options');
-const scienceTreeDisplayContainer = document.getElementById('science-tree-container').querySelector('.skill-tree-wrapper');
-
+// Ensure these containers are correctly selected (the '.skill-tree-wrapper' div inside them)
+const scienceTreeDisplayContainer = document.getElementById('science-tree-container')?.querySelector('.skill-tree-wrapper');
+const manufacturingTreeDisplayContainer = document.getElementById('manufacturing-tree-container')?.querySelector('.skill-tree-wrapper');
+const bankingTreeDisplayContainer = document.getElementById('banking-tree-container')?.querySelector('.skill-tree-wrapper');
+const selectedCharacterTreeContainer = document.getElementById('selected-character-tree'); // This is already the wrapper
 const characterUpgradeSelect = document.getElementById('character-upgrade-select');
-const selectedCharacterTreeContainer = document.getElementById('selected-character-tree');
-const manufacturingTreeDisplayContainer = document.getElementById('manufacturing-tree-container').querySelector('.skill-tree-wrapper');
-const bankingTreeDisplayContainer = document.getElementById('banking-tree-container').querySelector('.skill-tree-wrapper');
+
 
 /**
  * Formats a number for display, using suffixes for large numbers (K, M, B, T)
@@ -32,7 +33,7 @@ const bankingTreeDisplayContainer = document.getElementById('banking-tree-contai
  */
 function formatNumber(num) {
     if (num === null || num === undefined) return '0.00';
-    if (num < 0.005 && num > -0.005 && num !==0) return num.toExponential(2);
+    if (num < 0.005 && num > -0.005 && num !==0) return num.toExponential(2); // For very small non-zero numbers
     if (Math.abs(num) < 1) return num.toFixed(2);
     if (Math.abs(num) < 1000) return num.toFixed(2);
     
@@ -54,11 +55,10 @@ function formatNumber(num) {
  * Updates the resource display elements in the UI with current values.
  */
 function updateResourceDisplay() {
-    energyCountEl.textContent = formatNumber(getResource('energy'));
-    // The ID 'manufacturing-count' is used for the Material display span in HTML
-    manufacturingCountEl.textContent = formatNumber(getResource('manufacturing'));
-    coinCountEl.textContent = formatNumber(getResource('coin'));
-    scienceCountEl.textContent = formatNumber(getResource('science'));
+    if(energyCountEl) energyCountEl.textContent = formatNumber(getResource('energy'));
+    if(manufacturingCountEl) manufacturingCountEl.textContent = formatNumber(getResource('manufacturing'));
+    if(coinCountEl) coinCountEl.textContent = formatNumber(getResource('coin'));
+    if(scienceCountEl) scienceCountEl.textContent = formatNumber(getResource('science'));
 }
 
 /**
@@ -66,13 +66,16 @@ function updateResourceDisplay() {
  * @param {string} sectionId - The ID of the section to show.
  */
 function showSection(sectionId) {
-    [teamSelectionSection, teamManagementSection, researchSection, upgradesSection].forEach(sec => {
-        if (sec.id === sectionId) {
-            sec.classList.remove('hidden-section');
-            sec.classList.add('active-section');
-        } else {
-            sec.classList.add('hidden-section');
-            sec.classList.remove('active-section');
+    const sections = [teamSelectionSection, teamManagementSection, researchSection, upgradesSection];
+    sections.forEach(sec => {
+        if (sec) { // Check if the section element exists
+            if (sec.id === sectionId) {
+                sec.classList.remove('hidden-section');
+                sec.classList.add('active-section');
+            } else {
+                sec.classList.add('hidden-section');
+                sec.classList.remove('active-section');
+            }
         }
     });
 }
@@ -81,8 +84,9 @@ function showSection(sectionId) {
  * Populates the initial team member choices in the UI.
  */
 function populateInitialTeamChoices() {
+    if (!initialTeamOptionsContainer) return;
     initialTeamOptionsContainer.innerHTML = ''; // Clear existing options
-    initialTeamChoices.forEach(choice => {
+    initialTeamChoices.forEach(choice => { // initialTeamChoices from teams.js
         const div = document.createElement('div');
         div.classList.add('team-option');
         div.innerHTML = `
@@ -102,19 +106,14 @@ function populateInitialTeamChoices() {
  * @param {object} choiceData - The data object of the chosen team member.
  */
 function selectInitialTeamMember(choiceData) {
-    const member = addTeamMember(choiceData); // Add to actual team in teams.js
+    const member = addTeamMember(choiceData); // From teams.js
     if (member) {
-        // Transition UI state
-        teamSelectionSection.classList.add('hidden-section');
-        teamSelectionSection.classList.remove('active-section');
+        showSection('team-management'); // Show team management after first pick
+        // Also make other core sections visible
+        if(researchSection) researchSection.classList.remove('hidden-section');
+        if(upgradesSection) upgradesSection.classList.remove('hidden-section');
 
-        teamManagementSection.classList.remove('hidden-section');
-        teamManagementSection.classList.add('active-section');
 
-        researchSection.classList.remove('hidden-section');
-        upgradesSection.classList.remove('hidden-section');
-
-        // Update relevant UI parts
         updateTeamDisplay();
         updatePurchaseButton();
         populateCharacterUpgradeSelect();
@@ -126,8 +125,9 @@ function selectInitialTeamMember(choiceData) {
  * Updates the display of team members in the UI.
  */
 function updateTeamDisplay() {
-    teamMembersContainer.innerHTML = ''; // Clear current display
-    const members = getTeamMembers();
+    if (!teamMembersContainer) return;
+    teamMembersContainer.innerHTML = '';
+    const members = getTeamMembers(); // From teams.js
     members.forEach(member => {
         const card = document.createElement('div');
         card.classList.add('team-member-card');
@@ -139,45 +139,46 @@ function updateTeamDisplay() {
             <p><strong>Current Protocol:</strong> <span class="current-assignment">${member.assignment ? member.assignment.toUpperCase() : 'STANDBY'}</span></p>
             <div class="assignment-buttons">
                 <button data-task="energy" class="${member.assignment === 'energy' ? 'assigned' : ''}">Energy</button>
-                <button data-task="manufacturing" class="${member.assignment === 'manufacturing' ? 'assigned' : ''}">Material</button> {/* Corrected Label */}
+                <button data-task="manufacturing" class="${member.assignment === 'manufacturing' ? 'assigned' : ''}">Material</button>
                 <button data-task="coin" class="${member.assignment === 'coin' ? 'assigned' : ''}">Credits</button>
                 <button data-task="science" class="${member.assignment === 'science' ? 'assigned' : ''}">Research</button>
             </div>
         `;
-        // Add event listeners to assignment buttons
         card.querySelectorAll('.assignment-buttons button').forEach(button => {
             button.addEventListener('click', (e) => {
-                assignMemberToTask(member.id, e.target.dataset.task);
-                // updateTeamDisplay() will be called by assignMemberToTask to refresh the state
+                assignMemberToTask(member.id, e.target.dataset.task); // From teams.js
             });
         });
         teamMembersContainer.appendChild(card);
     });
 
-    // Show/hide character upgrade select based on team members' presence
-    if (members.length > 0 && characterUpgradeSelect.classList.contains('hidden')) {
-        characterUpgradeSelect.classList.remove('hidden');
-    } else if (members.length === 0 && !characterUpgradeSelect.classList.contains('hidden')) {
-         characterUpgradeSelect.classList.add('hidden');
+    if (characterUpgradeSelect) {
+        if (members.length > 0 && characterUpgradeSelect.classList.contains('hidden')) {
+            characterUpgradeSelect.classList.remove('hidden');
+        } else if (members.length === 0 && !characterUpgradeSelect.classList.contains('hidden')) {
+            characterUpgradeSelect.classList.add('hidden');
+        }
     }
-    populateCharacterUpgradeSelect(); // Refresh dropdown options
+    populateCharacterUpgradeSelect();
 }
+
 
 /**
  * Updates the state and text of the "Purchase New Member" button.
  */
 function updatePurchaseButton() {
-    if (buyMemberButton) {
-        newMemberCostSpan.textContent = formatNumber(getNextMemberCost());
-        const canBuyAnother = canPurchaseNewMember(); // From teams.js - checks max members
-        const enoughCoin = getResource('coin') >= getNextMemberCost();
-        const purchaseAbilityUnlocked = scienceTree.unlockTeamSlot2 && scienceTree.unlockTeamSlot2.unlocked;
+    if (buyMemberButton && newMemberCostSpan) {
+        newMemberCostSpan.textContent = formatNumber(getNextMemberCost()); // from teams.js
+        const canBuyAnother = canPurchaseNewMember(); // from teams.js
+        const enoughCoin = getResource('coin') >= getNextMemberCost(); // from resources.js, teams.js
+
+        // scienceTree must be defined (from upgrades.js)
+        const purchaseAbilityUnlocked = (typeof scienceTree !== 'undefined' && scienceTree.unlockTeamSlot2 && scienceTree.unlockTeamSlot2.unlocked);
 
         if (!canBuyAnother) {
             buyMemberButton.disabled = true;
             buyMemberButton.innerHTML = "OPERATIVE CAPACITY MAX";
         } else if (getTeamMembers().length > 0 && !purchaseAbilityUnlocked) {
-            // For buying 2nd member onwards, requires the science unlock
             buyMemberButton.disabled = true;
             buyMemberButton.title = "Requires 'Expanded Command Structure' from Tech Matrix.";
             buyMemberButton.innerHTML = `RECRUIT (COST: ${formatNumber(getNextMemberCost())} CREDITS)`;
@@ -193,9 +194,10 @@ function updatePurchaseButton() {
  * Populates the dropdown select for choosing a character for upgrades.
  */
 function populateCharacterUpgradeSelect() {
+    if (!characterUpgradeSelect) return;
     const members = getTeamMembers();
-    const currentSelectedValue = characterUpgradeSelect.value; // Preserve selection if possible
-    characterUpgradeSelect.innerHTML = '<option value="">-- SELECT OPERATIVE --</option>'; // Default option
+    const currentSelectedValue = characterUpgradeSelect.value;
+    characterUpgradeSelect.innerHTML = '<option value="">-- SELECT OPERATIVE --</option>';
 
     members.forEach(member => {
         const option = document.createElement('option');
@@ -204,15 +206,12 @@ function populateCharacterUpgradeSelect() {
         characterUpgradeSelect.appendChild(option);
     });
 
-    // Try to re-select the previously selected character, or default
     if (members.find(m => m.id === currentSelectedValue)) {
         characterUpgradeSelect.value = currentSelectedValue;
-    } else if (members.length > 0) {
-        characterUpgradeSelect.value = ""; // Default to "Select Operative" if previous is gone
     } else {
-         characterUpgradeSelect.value = ""; // No members, ensure default
+        characterUpgradeSelect.value = ""; // Default to "Select Operative"
     }
-    displayCharacterSpecificTree(characterUpgradeSelect.value); // Update tree for current selection
+    displayCharacterSpecificTree(characterUpgradeSelect.value);
 }
 
 /**
@@ -220,25 +219,27 @@ function populateCharacterUpgradeSelect() {
  * @param {string} characterId - The ID of the character whose upgrades to display.
  */
 function displayCharacterSpecificTree(characterId) {
-    selectedCharacterTreeContainer.innerHTML = ''; // Clear previous tree
+    if (!selectedCharacterTreeContainer) return;
+    selectedCharacterTreeContainer.innerHTML = '';
     if (!characterId) {
         selectedCharacterTreeContainer.innerHTML = '<p style="text-align:center; color: var(--text-color-secondary);">Select an operative to view specific enhancements.</p>';
         return;
     }
+    // getCharacterUpgrades is from upgrades.js, which needs teamMembers from teams.js
+    const characterSpecificUpgrades = getCharacterUpgrades(characterId);
     const character = getTeamMembers().find(m => m.id === characterId);
-    if (!character) return; // Should not happen if select is populated correctly
+
+
+    if (!character) return;
 
     const ul = document.createElement('ul');
     ul.classList.add('skill-tree');
     let hasUpgrades = false;
 
-    // Character-specific upgrades are expected to be on the character object itself (teams.js)
-    // Example: character.upgrades = { boostEnergy1: { name: "Energy Focus I", cost: {...}, unlocked: false, ... } }
-    if (character.upgrades && Object.keys(character.upgrades).length > 0) {
-        for (const upgradeId in character.upgrades) {
+    if (characterSpecificUpgrades && Object.keys(characterSpecificUpgrades).length > 0) {
+        for (const upgradeId in characterSpecificUpgrades) {
             hasUpgrades = true;
-            const upgrade = character.upgrades[upgradeId];
-            // 'character' treeKey, and pass characterId for specific purchase logic if needed later
+            const upgrade = characterSpecificUpgrades[upgradeId];
             const li = createUpgradeListItem(upgradeId, upgrade, 'character', character.id);
             ul.appendChild(li);
         }
@@ -255,23 +256,28 @@ function displayCharacterSpecificTree(characterId) {
  * Creates an HTML list item element for an upgrade.
  * @param {string} upgradeId - The ID of the upgrade.
  * @param {object} upgrade - The upgrade data object.
- * @param {string} treeKey - The key of the tree this upgrade belongs to ('science', 'manufacturing', etc.).
- * @param {string|null} characterId - Optional character ID if it's a character-specific upgrade.
+ * @param {string} treeKey - The key of the tree this upgrade belongs to.
+ * @param {string|null} characterId - Optional character ID for character-specific upgrades.
  * @returns {HTMLLIElement} The created list item.
  */
 function createUpgradeListItem(upgradeId, upgrade, treeKey, characterId = null) {
     const li = document.createElement('li');
     let costString = Object.entries(upgrade.cost).map(([res, val]) => `${formatNumber(val)} ${res.charAt(0).toUpperCase() + res.slice(1)}`).join(', ');
     let requirementString = "";
+
     if (upgrade.requires && upgrade.requires.length > 0) {
-        // Attempt to find requirement names from scienceTree or the current treeObject
         requirementString = ` (Req: ${upgrade.requires.map(reqId => {
-            const reqInScience = scienceTree[reqId];
-            if (reqInScience) return reqInScience.name;
-            // Add checks for other trees if requirements can cross trees beyond science
-            const treeObject = window[treeKey + 'Tree']; // e.g., window.manufacturingTree
-            if (treeObject && treeObject[reqId]) return treeObject[reqId].name;
-            return reqId; // Fallback to ID if name not found
+            // Access trees safely
+            const sTree = (typeof scienceTree !== 'undefined') ? scienceTree : {};
+            let currentTreeObj;
+            switch(treeKey) {
+                case 'science': currentTreeObj = sTree; break;
+                case 'manufacturing': currentTreeObj = (typeof manufacturingTree !== 'undefined') ? manufacturingTree : {}; break;
+                case 'banking': currentTreeObj = (typeof bankingTree !== 'undefined') ? bankingTree : {}; break;
+                default: currentTreeObj = {};
+            }
+            const reqUp = sTree[reqId] || currentTreeObj[reqId];
+            return reqUp ? reqUp.name : reqId;
         }).join(', ')})`;
     }
 
@@ -288,27 +294,33 @@ function createUpgradeListItem(upgradeId, upgrade, treeKey, characterId = null) 
         const button = li.querySelector('button');
         button.addEventListener('click', () => {
             if (treeKey === 'character' && characterId) {
-                // This would call a function like purchaseCharacterUpgrade(characterId, upgradeId);
                 console.warn(`Character upgrade purchase for ${upgrade.name} (char ID: ${characterId}) needs specific implementation.`);
                 alert(`Character upgrade purchasing for "${upgrade.name}" is not fully implemented yet.`);
             } else {
-                purchaseUpgrade(treeKey, upgradeId); // General upgrade purchase
+                purchaseUpgrade(treeKey, upgradeId); // from upgrades.js
             }
         });
 
-        // Determine button disabled state based on requirements and affordability
         let requirementsMet = true;
         if(upgrade.requires && upgrade.requires.length > 0) {
             requirementsMet = upgrade.requires.every(reqId => {
-                const reqUp = scienceTree[reqId] || (window[treeKey + 'Tree'] && window[treeKey + 'Tree'][reqId]);
+                 const sTree = (typeof scienceTree !== 'undefined') ? scienceTree : {};
+                 let currentTreeObj;
+                 switch(treeKey) {
+                    case 'science': currentTreeObj = sTree; break;
+                    case 'manufacturing': currentTreeObj = (typeof manufacturingTree !== 'undefined') ? manufacturingTree : {}; break;
+                    case 'banking': currentTreeObj = (typeof bankingTree !== 'undefined') ? bankingTree : {}; break;
+                    default: currentTreeObj = {};
+                 }
+                const reqUp = sTree[reqId] || currentTreeObj[reqId];
                 return reqUp && reqUp.unlocked;
             });
         }
-        const affordable = canAffordUpgrade(upgrade); // From upgrades.js
+        const affordable = canAffordUpgrade(upgrade); // from upgrades.js
 
         if(!requirementsMet) {
             button.disabled = true;
-            button.title = `Requires: ${upgrade.requires.map(reqId => (scienceTree[reqId]?.name || reqId)).join(', ')}`;
+            button.title = `Requires: ${upgrade.requires.map(reqId => ((typeof scienceTree !== 'undefined' && scienceTree[reqId]?.name) || reqId)).join(', ')}`;
         } else if (!affordable) {
              button.disabled = true;
              button.title = `Insufficient resources.`;
@@ -321,10 +333,15 @@ function createUpgradeListItem(upgradeId, upgrade, treeKey, characterId = null) 
  * Generic function to update a skill/tech tree display.
  * @param {HTMLElement} container - The HTML element to populate.
  * @param {object} treeObject - The JavaScript object representing the tree.
- * @param {string} treeKey - A string key identifying the tree (e.g., 'science').
+ * @param {string} treeKey - A string key identifying the tree.
  */
 function updateTreeDisplay(container, treeObject, treeKey) {
-    container.innerHTML = ''; // Clear current content
+    if (!container || !treeObject) {
+        // console.warn(`updateTreeDisplay: Container or TreeObject is null for ${treeKey}`);
+        if(container) container.innerHTML = `<p style="text-align:center; color: var(--text-color-secondary);">Error loading ${treeKey} tree.</p>`;
+        return;
+    }
+    container.innerHTML = '';
     const ul = document.createElement('ul');
     ul.classList.add('skill-tree');
     let hasContent = false;
@@ -343,16 +360,17 @@ function updateTreeDisplay(container, treeObject, treeKey) {
     }
 }
 
-// Specific tree update functions
 function updateScienceTreeDisplay() {
-    updateTreeDisplay(scienceTreeDisplayContainer, scienceTree, 'science');
+    if (typeof scienceTree !== 'undefined') updateTreeDisplay(scienceTreeDisplayContainer, scienceTree, 'science');
+    else if(scienceTreeDisplayContainer) scienceTreeDisplayContainer.innerHTML = "<p>Science tree data not loaded.</p>";
 }
 function updateManufacturingTreeDisplay() {
-    // The UI label is "Material", but the tree object might be 'manufacturingTree'
-    updateTreeDisplay(manufacturingTreeDisplayContainer, manufacturingTree, 'manufacturing');
+    if (typeof manufacturingTree !== 'undefined') updateTreeDisplay(manufacturingTreeDisplayContainer, manufacturingTree, 'manufacturing');
+     else if(manufacturingTreeDisplayContainer) manufacturingTreeDisplayContainer.innerHTML = "<p>Material tree data not loaded.</p>";
 }
 function updateBankingTreeDisplay() {
-    updateTreeDisplay(bankingTreeDisplayContainer, bankingTree, 'banking');
+    if (typeof bankingTree !== 'undefined') updateTreeDisplay(bankingTreeDisplayContainer, bankingTree, 'banking');
+    else if(bankingTreeDisplayContainer) bankingTreeDisplayContainer.innerHTML = "<p>Credits tree data not loaded.</p>";
 }
 
 /**
@@ -362,19 +380,21 @@ function updateAllTreesDisplay() {
     updateScienceTreeDisplay();
     updateManufacturingTreeDisplay();
     updateBankingTreeDisplay();
-    displayCharacterSpecificTree(characterUpgradeSelect.value); // Refresh based on current selection
-    updateResearchDisplay(); // Research options can depend on tree unlocks
+    if (characterUpgradeSelect) displayCharacterSpecificTree(characterUpgradeSelect.value);
+    updateResearchDisplay();
 }
 
 /**
  * Updates the display of available and active research projects.
  */
 function updateResearchDisplay() {
-    researchOptionsContainer.innerHTML = ''; // Clear current options
+    if (!researchOptionsContainer) return;
+    researchOptionsContainer.innerHTML = '';
     const ul = document.createElement('ul');
     ul.classList.add('research-options-list');
 
-    if (activeResearch) { // If a research project is currently active
+    // activeResearch and researchProjects from research.js
+    if (activeResearch) {
         const li = document.createElement('li');
         const progressPercent = Math.min(100, (researchProgress / activeResearch.duration) * 100);
         li.innerHTML = `
@@ -385,44 +405,44 @@ function updateResearchDisplay() {
             </div>
         `;
         ul.appendChild(li);
-    } else { // Display available research projects
+    } else {
         let availableResearchCount = 0;
-        for (const key in researchProjects) {
-            if (Object.hasOwnProperty.call(researchProjects, key)) {
-                const project = researchProjects[key];
-                if (project.unlocked) continue; // Skip already completed research
+        if (typeof researchProjects !== 'undefined') { // Ensure researchProjects is loaded
+            for (const key in researchProjects) {
+                if (Object.hasOwnProperty.call(researchProjects, key)) {
+                    const project = researchProjects[key];
+                    if (project.unlocked) continue;
 
-                // Check if science prerequisites from the tech matrix are met
-                let scienceReqMet = true;
-                if (project.requiresScienceUnlock) {
-                    const scienceUnlock = scienceTree[project.requiresScienceUnlock];
-                    if (!scienceUnlock || !scienceUnlock.unlocked) {
-                        scienceReqMet = false;
+                    let scienceReqMet = true;
+                    if (project.requiresScienceUnlock) {
+                        if (typeof scienceTree === 'undefined' || !scienceTree[project.requiresScienceUnlock] || !scienceTree[project.requiresScienceUnlock].unlocked) {
+                            scienceReqMet = false;
+                        }
                     }
-                }
-                if (!scienceReqMet) continue; // Skip if prerequisite not met
+                    if (!scienceReqMet) continue;
 
-                availableResearchCount++;
-                const li = document.createElement('li');
-                let costString = Object.entries(project.cost).map(([res, val]) => `${formatNumber(val)} ${res.charAt(0).toUpperCase() + res.slice(1)}`).join(', ');
-                let prereqString = "";
-                if (project.requiresScienceUnlock && scienceTree[project.requiresScienceUnlock]) {
-                    prereqString = ` (Requires: ${scienceTree[project.requiresScienceUnlock].name})`;
-                }
+                    availableResearchCount++;
+                    const li = document.createElement('li');
+                    let costString = Object.entries(project.cost).map(([res, val]) => `${formatNumber(val)} ${res.charAt(0).toUpperCase() + res.slice(1)}`).join(', ');
+                    let prereqString = "";
+                    if (project.requiresScienceUnlock && (typeof scienceTree !== 'undefined' && scienceTree[project.requiresScienceUnlock])) {
+                        prereqString = ` (Requires: ${scienceTree[project.requiresScienceUnlock].name})`;
+                    }
 
-                li.innerHTML = `
-                    <strong>${project.name}</strong><small class="req-text">${prereqString}</small><br>
-                    <small class="desc-text">${project.description}</small><br>
-                    <span class="cost-text">Cost: ${costString} - Duration: ${project.duration}s</span>
-                    <button class="futuristic-button" data-id="${key}">Initiate</button>
-                `;
-                const button = li.querySelector('button');
-                if (!canStartResearch(key)) { // canStartResearch also checks resource cost
-                    button.disabled = true;
-                    button.title = "Cannot start: Check requirements or resources.";
+                    li.innerHTML = `
+                        <strong>${project.name}</strong><small class="req-text">${prereqString}</small><br>
+                        <small class="desc-text">${project.description}</small><br>
+                        <span class="cost-text">Cost: ${costString} - Duration: ${project.duration}s</span>
+                        <button class="futuristic-button" data-id="${key}">Initiate</button>
+                    `;
+                    const button = li.querySelector('button');
+                    if (!canStartResearch(key)) { // from research.js
+                        button.disabled = true;
+                        button.title = "Cannot start: Check requirements or resources.";
+                    }
+                    button.addEventListener('click', () => startResearch(key)); // from research.js
+                    ul.appendChild(li);
                 }
-                button.addEventListener('click', () => startResearch(key));
-                ul.appendChild(li);
             }
         }
         if (availableResearchCount === 0 && !activeResearch) {
@@ -432,28 +452,19 @@ function updateResearchDisplay() {
     researchOptionsContainer.appendChild(ul);
 }
 
-// Event listener for DOMContentLoaded to initialize UI elements
+// Event listener for DOMContentLoaded to initialize UI elements that don't depend on game data being fully loaded.
+// Core game data dependent UI updates are called from initGame in main.js
 document.addEventListener('DOMContentLoaded', () => {
-    populateInitialTeamChoices();
-    updatePurchaseButton(); // Set initial state of purchase button
-    buyMemberButton.addEventListener('click', purchaseNewTeamMember);
-    characterUpgradeSelect.addEventListener('change', (e) => displayCharacterSpecificTree(e.target.value));
+    // Event listeners that can be set up immediately
+    if(buyMemberButton) buyMemberButton.addEventListener('click', purchaseNewTeamMember);
+    if(characterUpgradeSelect) characterUpgradeSelect.addEventListener('change', (e) => displayCharacterSpecificTree(e.target.value));
 
-    // Set initial visibility of sections
-    teamManagementSection.classList.add('hidden-section');
-    researchSection.classList.add('hidden-section');
-    upgradesSection.classList.add('hidden-section');
-    teamSelectionSection.classList.add('active-section'); // Start with team selection
+    // Initial setup of section visibility (can be refined in initGame if needed)
+    // showSection('team-selection'); // initGame will handle this for better control flow.
 
-    // Ensure buy button is disabled initially if conditions aren't met
-    const buyButtonInitialCheck = document.getElementById('buy-member-button');
-    if (buyButtonInitialCheck) { // Check if element exists
-         // Initial state handled by updatePurchaseButton, but ensure it's disabled if no team yet.
-        if (getTeamMembers().length === 0) {
-            buyButtonInitialCheck.disabled = true;
-        }
+    // Initial state of buy button if no team members yet.
+    // updatePurchaseButton will handle more complex logic once game data is ready.
+    if (buyMemberButton && typeof getTeamMembers !== 'undefined' && getTeamMembers().length === 0) {
+        buyMemberButton.disabled = true;
     }
-
-
-    updateAllTreesDisplay(); // Populate all trees on load
 });
