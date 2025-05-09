@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolving Clicker v4</title>
+    <title>Evolving Clicker v5</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -25,28 +25,29 @@
                     <div class="resource">
                         <span class="resource-label">MATERIAL:</span>
                         <span id="manufacturing-count" class="resource-value">0</span>
-                        <span class="resource-details">(<span id="material-production">0</span>/s)</span>
+                        <span class="resource-details">(<span id="material-production">0</span>/s - <span id="material-consumption">0</span>/s = <span id="material-net">0</span>/s)</span>
                     </div>
                     <div class="resource">
                         <span class="resource-label">CREDITS:</span>
                         <span id="coin-count" class="resource-value">0</span>
-                        <span class="resource-details">(<span id="credits-production">0</span>/s)</span>
+                        <span class="resource-details">(<span id="credits-production">0</span>/s - <span id="credits-consumption">0</span>/s = <span id="credits-net">0</span>/s)</span>
                     </div>
                     <div class="resource">
                         <span class="resource-label">RESEARCH DATA:</span>
                         <span id="science-count" class="resource-value">0</span>
-                        <span class="resource-details">(<span id="research-data-production">0</span>/s)</span>
+                        <span class="resource-details">(<span id="research-data-production">0</span>/s - <span id="research-data-consumption">0</span>/s = <span id="research-data-net">0</span>/s)</span>
                     </div>
                 </div>
+                <button id="toggle-operative-management-button" class="futuristic-button section-toggle-button">OPERATIVE MANAGEMENT</button>
             </section>
 
-            <section id="team-selection" class="active-section">
+            <section id="team-selection" class="hidden-section managed-section">
                 <h2>INITIALIZE CORE TEAM</h2>
                 <div id="initial-team-options">
                     </div>
             </section>
 
-            <section id="team-management" class="hidden-section">
+            <section id="team-management" class="hidden-section managed-section">
                 <h2>OPERATIVE MANAGEMENT</h2>
                 <div id="team-members-container">
                     </div>
@@ -82,13 +83,16 @@
         </main>
 
         <footer>
-            <p>SYSTEM ONLINE | Version 4.0</p>
+            <p>SYSTEM ONLINE | Version 5.0</p>
         </footer>
     </div>
 
     <script src="js/resources.js"></script>
     <script src="js/teams.js"></script>
-    <script src="js/techTree.js"></script> <script src="js/buildings.js"></script> <script src="js/creditActions.js"></script> <script src="js/ui.js"></script>
+    <script src="js/techTree.js"></script>
+    <script src="js/buildings.js"></script>
+    <script src="js/creditActions.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
