@@ -1,148 +1,153 @@
-// js/upgrades.js
+// js/teams.js
 
-const scienceTree = {
-    unlockTier1Manufacturing: {
-        id: 'unlockTier1Manufacturing',
-        name: 'Basic Manufacturing Processes',
-        description: 'Unlocks the ability to research Tier 1 manufactured goods.',
-        cost: { science: 50 },
-        unlocked: false,
-        requires: [],
-        onUnlock: () => {
-            console.log("Basic Manufacturing Unlocked!");
-            // This would typically enable new research options in research.js
-            // For example, by modifying an array of available research items.
-            if (window.research && typeof window.research.unlockManufacturingCategory === 'function') {
-                window.research.unlockManufacturingCategory('tier1');
-            }
-        }
+let teamMembers = [];
+const MAX_TEAM_MEMBERS = 7;
+let nextMemberCost = 100; // Initial cost for the second member (Credits)
+
+const initialTeamChoices = [
+    {
+        id: 'alpha_01',
+        name: 'Jax "Spark" Volkov', // Shortened name
+        stats: { energy: 3, manufacturing: 1, coin: 1, science: 1 },
+        excelsAt: 'energy',
+        description: 'Energy systems specialist. Boosts ENERGY output.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
     },
-    unlockTeamSlot2: {
-        id: 'unlockTeamSlot2',
-        name: 'Expanded Team Rosters',
-        description: 'Allows purchasing a second team member.',
-        cost: { science: 25 },
-        unlocked: false,
-        requires: [],
-        onUnlock: () => {
-            console.log("Team Slot 2 research complete!");
-            // This enables the button in the UI. The actual purchase logic is in teams.js
-            const buyButton = document.getElementById('buy-member-button');
-            if (buyButton) buyButton.disabled = false;
-        }
+    {
+        id: 'beta_01',
+        name: 'Lyra "Forge" Chen',
+        stats: { energy: 1, manufacturing: 3, coin: 1, science: 1 },
+        excelsAt: 'manufacturing',
+        description: 'Materiel fabrication expert. Boosts MATERIEL output.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
     },
-    advancedEnergyHarvesting: {
-        id: 'advancedEnergyHarvesting',
-        name: 'Advanced Energy Harvesting',
-        description: 'Boosts all energy generation by 10%.',
-        cost: { science: 100 },
-        unlocked: false,
-        requires: ['unlockTier1Manufacturing'], // Example requirement
-        onUnlock: () => {
-            console.log("Advanced Energy Harvesting Unlocked!");
-            // This needs to modify a global multiplier or team member outputs
-            // For simplicity, let's assume a global buff for now.
-            // This effect would need to be applied in resource.js or teams.js calculations.
-        }
+    {
+        id: 'gamma_01',
+        name: 'Silas "Broker" Sterling', // Changed nickname
+        stats: { energy: 1, manufacturing: 1, coin: 3, science: 1 },
+        excelsAt: 'coin',
+        description: 'Economic strategist. Boosts CREDITS acquisition.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
+    },
+    {
+        id: 'delta_01',
+        name: 'Dr. Aris "Insight" Thorne',
+        stats: { energy: 1, manufacturing: 1, coin: 1, science: 3 },
+        excelsAt: 'science',
+        description: 'Lead researcher. Boosts RESEARCH DATA generation.',
+        cost: 0,
+        assignment: null,
+        upgrades: {}
     }
-    // More science upgrades...
-};
+];
 
-const manufacturingTree = {
-    fasterConveyors: {
-        id: 'fasterConveyors',
-        name: 'Faster Conveyor Belts',
-        description: 'Increases manufacturing output by 5%.',
-        cost: { manufacturing: 200, coin: 50 }, // Example cost
-        unlocked: false,
-        requires: [], // Could require specific science unlocks
-        onUnlock: () => { console.log("Faster Conveyors Unlocked!"); }
-    }
-    // More manufacturing upgrades...
-};
-
-const bankingTree = {
-    basicInterest: {
-        id: 'basicInterest',
-        name: 'Basic Interest',
-        description: 'Gain a small percentage of your coins automatically over time.',
-        cost: { coin: 500, science: 50 },
-        unlocked: false,
-        requires: [],
-        onUnlock: () => { console.log("Basic Interest Unlocked!"); }
-    }
-    // More banking upgrades...
-};
-
-// Character specific upgrades will be stored within the teamMember object itself.
-// This function would populate the UI for a selected character's tree.
-function getCharacterUpgrades(characterId) {
-    const character = teamMembers.find(m => m.id === characterId);
-    if (character && character.upgrades) {
-        return character.upgrades;
-    }
-    return {};
+function getTeamMembers() {
+    return teamMembers;
 }
 
-function canAffordUpgrade(upgrade) {
-    for (const resourceType in upgrade.cost) {
-        if (getResource(resourceType) < upgrade.cost[resourceType]) {
-            return false;
+function addTeamMember(memberData) {
+    if (teamMembers.length < MAX_TEAM_MEMBERS) {
+        const newMember = { ...memberData, id: `${memberData.name.split(' ')[0]}_${Date.now()}`, assignment: null, upgrades: {} };
+        teamMembers.push(newMember);
+        if (teamMembers.length > 1) {
+            nextMemberCost = Math.floor(nextMemberCost * 1.75); // Slightly adjusted cost curve
         }
+        console.log(`Operative ${newMember.name} recruited.`);
+        return newMember;
     }
-    return true;
+    console.log("Maximum operative capacity reached.");
+    return null;
 }
 
-function purchaseUpgrade(tree, upgradeId) {
-    let upgrade;
-    if (tree === 'science') upgrade = scienceTree[upgradeId];
-    else if (tree === 'manufacturing') upgrade = manufacturingTree[upgradeId];
-    else if (tree === 'banking') upgrade = bankingTree[upgradeId];
-    // Add character tree logic later
-
-    if (upgrade && !upgrade.unlocked && canAffordUpgrade(upgrade)) {
-        // Check requirements
-        let requirementsMet = true;
-        if (upgrade.requires) {
-            for (const reqId of upgrade.requires) {
-                // Assuming requirements are from the same tree for now, or global science unlocks
-                const reqUpgrade = scienceTree[reqId] || manufacturingTree[reqId] || bankingTree[reqId];
-                if (!reqUpgrade || !reqUpgrade.unlocked) {
-                    requirementsMet = false;
-                    alert(`Requirement not met: ${reqUpgrade ? reqUpgrade.name : reqId}`);
-                    break;
-                }
-            }
-        }
-
-        if (requirementsMet) {
-            for (const resourceType in upgrade.cost) {
-                spendResource(resourceType, upgrade.cost[resourceType]);
-            }
-            upgrade.unlocked = true;
-            if (typeof upgrade.onUnlock === 'function') {
-                upgrade.onUnlock();
-            }
-            console.log(`Upgrade purchased: ${upgrade.name}`);
-            updateResourceDisplay();
-            // Refresh relevant upgrade tree UI
-            if (tree === 'science') updateScienceTreeDisplay();
-            // Add other tree updates
-            return true;
-        }
-    } else if (upgrade && upgrade.unlocked) {
-        console.log("Upgrade already unlocked.");
-    } else if (upgrade && !canAffordUpgrade(upgrade)) {
-        console.log("Not enough resources for this upgrade.");
-        alert("Not enough resources for this upgrade.");
-    } else {
-        console.log("Upgrade not found.");
+function assignMemberToTask(memberId, task) { // task: 'energy', 'manufacturing', 'coin', 'science'
+    const member = teamMembers.find(m => m.id === memberId);
+    if (member) {
+        member.assignment = task;
+        console.log(`${member.name} assigned to ${task.toUpperCase()} protocol.`);
+        updateTeamDisplay(); // Refresh UI
+        return true;
     }
     return false;
 }
 
-// Initialize upgrade systems
-function initUpgrades() {
-    console.log("Upgrade System Initialized");
-    // Potentially load saved upgrade states here
+function getMemberContribution(member, taskType) {
+    let contribution = 1; // Base contribution per tick
+    if (member.stats && member.stats[taskType]) {
+        contribution = member.stats[taskType];
+    }
+    if (member.excelsAt === taskType) {
+        contribution *= 1.5; // 50% bonus for excelling
+    }
+    // TODO: Add effects from character-specific upgrades
+    // e.g., if (member.upgrades.someUpgradeForTaskType) contribution *= upgradeBonus;
+    return contribution;
+}
+
+function calculateResourceGeneration() {
+    let energyGeneration = 0;
+    let manufacturingGeneration = 0;
+    let coinGeneration = 0;
+    let scienceGeneration = 0;
+
+    teamMembers.forEach(member => {
+        if (member.assignment) {
+            const contribution = getMemberContribution(member, member.assignment);
+            switch (member.assignment) {
+                case 'energy':
+                    energyGeneration += contribution;
+                    break;
+                case 'manufacturing':
+                    manufacturingGeneration += contribution;
+                    break;
+                case 'coin':
+                    coinGeneration += contribution;
+                    break;
+                case 'science':
+                    scienceGeneration += contribution;
+                    break;
+            }
+        }
+    });
+
+    return {
+        energy: energyGeneration,
+        manufacturing: manufacturingGeneration,
+        coin: coinGeneration,
+        science: scienceGeneration
+    };
+}
+
+function canPurchaseNewMember() {
+    return teamMembers.length < MAX_TEAM_MEMBERS;
+}
+
+function getNextMemberCost() {
+    return nextMemberCost;
+}
+
+function purchaseNewTeamMember() {
+    if (canPurchaseNewMember() && spendResource('coin', getNextMemberCost())) {
+        const newMemberData = {
+            name: `Operative Unit ${teamMembers.length + 1}`,
+            stats: { energy: 1, manufacturing: 1, coin: 1, science: 1 }, // Generic stats for purchased ones
+            excelsAt: null,
+            description: 'A versatile operative unit, awaiting specialization.',
+            cost: getNextMemberCost()
+        };
+        const added = addTeamMember(newMemberData);
+        if (added) {
+            updateTeamDisplay();
+            updateResourceDisplay();
+            updatePurchaseButton();
+        }
+        return added;
+    }
+    console.log("Recruitment failed: Insufficient CREDITS or operative capacity full.");
+    return null;
 }
