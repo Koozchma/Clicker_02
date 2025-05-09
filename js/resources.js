@@ -2,37 +2,37 @@
 
 const resources = {
     energy: 0,
-    manufacturing: 0,
-    coin: 0,
-    science: 0,
-    multiplier: 1.00, // Initial multiplier will be 1.01 after first gain
+    manufacturing: 0, // Renamed in UI to Materiel, but keep var name for now
+    coin: 0,          // Renamed in UI to Credits
+    science: 0,       // Renamed in UI to Research Data
 };
+
+// The 1.01 multiplier is applied per tick in main.js now.
+// Base click amount
+const CLICK_BONUS_AMOUNT = 0.1; // Small amount added per click to each resource
 
 function addResource(type, amount) {
     if (resources.hasOwnProperty(type)) {
         resources[type] += amount;
+        if (resources[type] < 0) resources[type] = 0; // Prevent negative resources
     }
-    // Science might have different accumulation rules, not directly from team members initially.
 }
 
-function applyMultiplier() {
-    // The problem states "it will be multiply against itself by 1.01".
-    // This implies that if you have 10 energy, next second you have 10 * 1.01 = 10.1
-    // This needs to be applied carefully to avoid runaway feedback loops if
-    // the base generation also feeds into this.
-    // Let's assume the 1.01 multiplier applies to the *current total* each second.
-
+function applyGlobalMultiplier() {
+    // This multiplier applies to the *current total* each game tick.
+    const MULTIPLIER_RATE = 1.01;
     if (resources.energy > 0) {
-        resources.energy *= 1.01;
+        resources.energy *= MULTIPLIER_RATE;
     }
     if (resources.manufacturing > 0) {
-        resources.manufacturing *= 1.01;
+        resources.manufacturing *= MULTIPLIER_RATE;
     }
     if (resources.coin > 0) {
-        resources.coin *= 1.01;
+        resources.coin *= MULTIPLIER_RATE;
     }
-    // Science might not have this auto-multiplier, or have a different one.
-    // For now, we'll exclude science from this specific multiplier.
+    if (resources.science > 0) { // Science also benefits from the global multiplier
+        resources.science *= MULTIPLIER_RATE;
+    }
 }
 
 function getResource(type) {
@@ -47,12 +47,28 @@ function spendResource(type, amount) {
     return false;
 }
 
-// Initialize resources for the game, perhaps from saved state later
+function handleManualResourceClick() {
+    // Add a small flat bonus to all resources on click
+    addResource('energy', CLICK_BONUS_AMOUNT);
+    addResource('manufacturing', CLICK_BONUS_AMOUNT);
+    addResource('coin', CLICK_BONUS_AMOUNT);
+    addResource('science', CLICK_BONUS_AMOUNT); // Science also gets a click bonus
+    updateResourceDisplay(); // Immediately update UI after click
+    console.log("Manual resource collection:", resources);
+}
+
+
+// Initialize resources for the game
 function initResources() {
-    // For now, starts at 0
     resources.energy = 0;
     resources.manufacturing = 0;
     resources.coin = 0;
     resources.science = 0;
-    console.log("Resources Initialized");
+    console.log("Resource Subsystems Initialized");
+
+    // Add event listener for the click-to-gain feature
+    const resourceDisplayArea = document.getElementById('resource-display');
+    if (resourceDisplayArea) {
+        resourceDisplayArea.addEventListener('click', handleManualResourceClick);
+    }
 }
